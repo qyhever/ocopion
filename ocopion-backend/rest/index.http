@@ -1,0 +1,84 @@
+@hostname = localhost
+@port = 6304
+@host = {{hostname}}:{{port}}
+@token = replace-with-access-token
+
+### AdminLogin
+post http://{{host}}/api/admin/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### GetPostList
+get http://{{host}}/api/post?pageNum=1&pageSize=10&keyword=测试 HTTP/1.1
+
+### GetPostList (without keyword)
+get http://{{host}}/api/post?pageNum=1&pageSize=3 HTTP/1.1
+
+### GetDiscList
+get http://{{host}}/api/disc?pageNum=1&pageSize=10 HTTP/1.1
+
+### GetPostByID
+@postId = 45fbb08465322348262733406
+get http://{{host}}/api/post/{{postId}} HTTP/1.1
+
+### CreatePost
+post http://{{host}}/api/post HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "新文章标题",
+  "content": "<p>新文章内容</p>"
+}
+
+### UpdatePost
+put http://{{host}}/api/post/{{postId}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "更新后的标题",
+  "content": "更新后的内容"
+}
+
+### DeletePost
+delete http://{{host}}/api/post/{{postId}} HTTP/1.1
+
+### GetVideoList
+get http://{{host}}/api/video HTTP/1.1
+
+### GetAdmin
+@adminId = 1
+get http://{{host}}/api/admin/{{adminId}} HTTP/1.1
+Authorization: Bearer {{token}}
+
+### UpdateAdmin
+put http://{{host}}/api/admin/{{adminId}} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "username": "admin",
+  "name": "管理员",
+  "password": "new-password"
+}
+
+### BatchDeleteAdmins
+delete http://{{host}}/api/admin/batch HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [1, 2, 3]
+}
+
+### ToggleAdminStatus
+put http://{{host}}/api/admin/{{adminId}}/status HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": "active"
+}

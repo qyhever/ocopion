@@ -1,0 +1,41 @@
+mode: "dev"
+
+file:
+  upload_view_base_url: ""
+  upload_dir_path: ""
+
+server:
+  port: 6304
+
+logger:
+  level: "debug"
+  filename: "./log/ocopion.log"
+  max_size: 100 # 单文件最大体积，单位 MB
+  max_age: 30 # 历史日志最大保留天数，单位 day
+  max_backups: 5
+
+database:
+  mysql:
+    addr: "localhost:3306"
+    user: "root"
+    password: "123456"
+    db_name: "ocopion"
+
+jwt:
+  secret: "foobar"
+  access_expires_in: "2h"
+  refresh_expires_in: "72h"
+
+auth:
+  whitelist:
+    - "GET:/foo"
+    - "GET:/@vite/client"
+    - "GET:/"
+    - "POST:/app/getHelloInfo"
+
+postal:
+  smtp_server: "" # SMTP服务器地址
+  smtp_port: ""  # SMTP端口(优先465)
+  from_email: "" # 发件邮箱
+  from_pass: ""  # 发件邮箱密码
+  from_name: ""  # 发件人显示名称
