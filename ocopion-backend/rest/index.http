@@ -1,5 +1,5 @@
 @hostname = localhost
-@port = 6304
+@port = 8301
 @host = {{hostname}}:{{port}}
 @token = replace-with-access-token
 

@@ -43,7 +43,6 @@ rsync -avz --progress --partial ./public qyhever:/opt/apps/ocopion-backend
 rsync -avz --delete --progress --partial ./docs qyhever:/opt/apps/ocopion-backend
 rsync -avz --progress --partial ./internal/config/app.yml qyhever:/opt/apps/ocopion-backend
 rsync -avz --progress --partial ./internal/config/prod.yml qyhever:/opt/apps/ocopion-backend
-rsync -avz --progress --partial ./internal/data qyhever:/opt/apps/ocopion-backend
 echo "✅ 上传完成！"
 
 echo "🔄 重启远程 ocopion 服务..."

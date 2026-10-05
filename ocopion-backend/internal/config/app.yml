@@ -5,7 +5,7 @@ file:
   upload_dir_path: ""
 
 server:
-  port: 6304
+  port: 8301
 
 logger:
   level: "debug"

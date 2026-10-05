@@ -8,6 +8,7 @@ import (
 	"ocopion/internal/config"
 	"ocopion/internal/module/app"
 	"ocopion/internal/module/post"
+	"ocopion/internal/module/video"
 	"ocopion/internal/pkg/db"
 
 	"github.com/gin-gonic/gin"
@@ -20,10 +21,11 @@ func SetupRouter() (*gin.Engine, error) {
 	}
 	postController := post.NewController(post.NewService(post.NewGormRepository(gormDB)))
 	appController := app.NewController()
-	return newRouter(postController, appController), nil
+	videoController := video.NewVideoController(video.NewVideoService(video.NewVideoRepository(), config.GetConfig()))
+	return newRouter(postController, appController, videoController), nil
 }
 
-func newRouter(postController *post.Controller, appController *app.Controller) *gin.Engine {
+func newRouter(postController *post.Controller, appController *app.Controller, videoController *video.VideoController) *gin.Engine {
 	if config.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -33,6 +35,7 @@ func newRouter(postController *post.Controller, appController *app.Controller) *
 
 	api := r.Group("/api")
 	api.GET("/meta", appController.GetMeta)
+	api.GET("/video", videoController.GetVideoList)
 
 	api.POST("/post", postController.Create)
 	api.PUT("/post/:id", postController.Update)

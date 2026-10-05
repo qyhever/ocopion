@@ -11,7 +11,7 @@ import (
 // @title ocopion-backend API
 // @version 1.0
 // @description ocopion-backend HTTP API documentation.
-// @host localhost:6304
+// @host localhost:8301
 // @BasePath /api
 // @securityDefinitions.apikey BearerAuth
 // @in header

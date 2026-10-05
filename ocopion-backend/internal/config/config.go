@@ -198,7 +198,7 @@ func GetConfig() *Config {
 // GetServerAddr 获取服务器地址
 func GetServerAddr() string {
 	if GlobalConfig == nil {
-		return ":6304" // 默认端口
+		return ":8301" // 默认端口
 	}
 	return fmt.Sprintf(":%d", GlobalConfig.Server.Port)
 }
