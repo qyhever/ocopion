@@ -4,7 +4,7 @@
 
 - 这是一个 Go + Gin 后端服务。
 - 可执行程序入口是 `cmd/main.go`。
-- 业务代码应保留在 `internal/` 中，并保持现有分层：controller -> service -> repository/persistence。
+- 保持分层链路：：路由 -> 模块Controller -> 模块Service -> 模块Repository -> DB。
 
 ## 常用命令
 
@@ -19,8 +19,8 @@
 
 - 在 `internal/api/router.go` 中添加 HTTP 路由。
 - Controller 应保持轻量：解析请求、调用 service、写入响应。
-- 业务逻辑放在 `internal/service/`。
-- 数据访问放在 `internal/repository/` 和 `internal/repository/persistence/`。
+- 业务逻辑放在 `internal/module/<modulename>/service`。
+- 数据访问放在 `internal/module/<modulename>/repository` 和 `internal/module/<modulename>/repository_impl`。
 - 优先在路由 setup 中按现有 controller 和 service 的构造方式完成依赖装配。
 
 ## 响应约定
@@ -42,12 +42,12 @@
 - 优先在现有分层边界内做小改动，不要绕过 service 直接从 controller 调用 repository。
 - 导出名称保持符合 Go 习惯，避免不必要的抽象。
 - 添加 endpoint 时，应同步更新 router、controller、service 和 repository 层。
-- 如果变更影响示例 payload 或本地 stub 数据，请检查 `public/meta.json` 和 `public/post.json`。
+- 如果变更影响示例 payload 或本地 stub 数据，请检查 `public/meta.json`。
 
 ## 参考文件
 
 - 运行入口：`cmd/main.go`
 - Router setup：`internal/api/router.go`
-- 共享 API 响应工具：`internal/controller/response.go`
+- 共享 API 响应工具：`internal/pkg/response/response.go`
 - 配置文件：`internal/config/`
 - 示例 HTTP 请求：`rest/index.http`

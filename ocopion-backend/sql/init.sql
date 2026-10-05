@@ -29,3 +29,12 @@ CREATE TABLE IF NOT EXISTS validation_codes (
     PRIMARY KEY (email, type),
     KEY idx_register_codes_expires_at (expires_at)
 );
+
+CREATE TABLE IF NOT EXISTS posts (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(128) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL DEFAULT NULL
+);
