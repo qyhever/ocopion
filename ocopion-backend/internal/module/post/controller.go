@@ -34,10 +34,7 @@ func respondError(c *gin.Context, err error) {
 }
 
 func (ctl *Controller) Create(c *gin.Context) {
-	var input struct {
-		Title   string `json:"title"`
-		Content string `json:"content"`
-	}
+	var input CreateRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		respondError(c, ErrInvalidInput)
 		return
@@ -47,7 +44,7 @@ func (ctl *Controller) Create(c *gin.Context) {
 		respondError(c, err)
 		return
 	}
-	response.Success(c, post)
+	response.Success(c, newPostResponse(*post))
 }
 
 func (ctl *Controller) Update(c *gin.Context) {
@@ -56,20 +53,17 @@ func (ctl *Controller) Update(c *gin.Context) {
 		respondError(c, err)
 		return
 	}
-	var input struct {
-		Title   *string `json:"title"`
-		Content *string `json:"content"`
-	}
+	input := UpdateRequest{ID: id}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		respondError(c, ErrInvalidInput)
 		return
 	}
-	post, err := ctl.service.Update(c.Request.Context(), id, input.Title, input.Content)
+	post, err := ctl.service.Update(c.Request.Context(), input.ID, input.Title, input.Content)
 	if err != nil {
 		respondError(c, err)
 		return
 	}
-	response.Success(c, post)
+	response.Success(c, newPostResponse(*post))
 }
 
 func (ctl *Controller) Get(c *gin.Context) {
@@ -78,18 +72,17 @@ func (ctl *Controller) Get(c *gin.Context) {
 		respondError(c, err)
 		return
 	}
-	post, err := ctl.service.Get(c.Request.Context(), id)
+	input := GetRequest{ID: id}
+	post, err := ctl.service.Get(c.Request.Context(), input.ID)
 	if err != nil {
 		respondError(c, err)
 		return
 	}
-	response.Success(c, post)
+	response.Success(c, newPostResponse(*post))
 }
 
 func (ctl *Controller) Delete(c *gin.Context) {
-	var input struct {
-		IDs []int64 `json:"ids"`
-	}
+	var input DeleteRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		respondError(c, ErrInvalidInput)
 		return
@@ -98,7 +91,7 @@ func (ctl *Controller) Delete(c *gin.Context) {
 		respondError(c, err)
 		return
 	}
-	response.Success(c, nil)
+	response.Success(c, (*DeleteResponse)(nil))
 }
 
 func queryInt(c *gin.Context, key string) int {
@@ -110,10 +103,11 @@ func queryInt(c *gin.Context, key string) int {
 }
 
 func (ctl *Controller) List(c *gin.Context) {
-	result, err := ctl.service.List(c.Request.Context(), queryInt(c, "pageNum"), queryInt(c, "pageSize"), c.Query("keyword"))
+	input := ListRequest{PageNum: queryInt(c, "pageNum"), PageSize: queryInt(c, "pageSize"), Keyword: c.Query("keyword")}
+	result, err := ctl.service.List(c.Request.Context(), input.PageNum, input.PageSize, input.Keyword)
 	if err != nil {
 		respondError(c, err)
 		return
 	}
-	response.Success(c, result)
+	response.Success(c, newListResponse(result))
 }
