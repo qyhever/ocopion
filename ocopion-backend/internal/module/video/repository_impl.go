@@ -73,6 +73,190 @@ func (r *VideoRepositoryImpl) GetVideoList() ([]VideoConfig, error) {
 		{FileName: "ios/IMG_5398.mp4", VideoName: "ios/IMG_5398.mp4"},
 		{FileName: "ios/IMG_5399.mp4", VideoName: "ios/IMG_5399.mp4"},
 		{FileName: "ios/IMG_5400.mp4", VideoName: "ios/IMG_5400.mp4"},
+		{
+			VideoName: "【P10】一年级下《静夜思》唐·李白.mp4",
+			FileName:  "1007/a10870ec-1a5f-40e1-b0f0-f24b8eab10e1.mp4",
+		},
+		{
+			VideoName: "【P11】一年级下《赠汪伦》唐·李白.mp4",
+			FileName:  "1007/4f584caf-54a0-4e72-a820-540271e13db5.mp4",
+		},
+		{
+			VideoName: "【P12】一年级下《画鸡》明·唐寅.mp4",
+			FileName:  "1007/035f4f80-543c-4956-9f24-321f5423822e.mp4",
+		},
+		{
+			VideoName: "【P13】一年级下《寻隐者不遇》唐·贾岛.mp4",
+			FileName:  "1007/279cf1eb-b637-4bd2-aff0-a3815ef9f352.mp4",
+		},
+		{
+			VideoName: "【P14】二年级上《敕勒歌》北朝民歌.mp4",
+			FileName:  "1007/9afab5af-1313-492b-8659-48d9167864bd.mp4",
+		},
+		{
+			VideoName: "【P15】二年级上《登鹳雀楼》唐·王之涣.mp4",
+			FileName:  "1007/ecb28dae-6359-42db-b6c4-f66a1787d1be.mp4",
+		},
+		{
+			VideoName: "【P16】二年级上《江雪》唐·柳宗元.mp4",
+			FileName:  "1007/24a2c501-7df0-484e-9800-0e50869d5fb3.mp4",
+		},
+		{
+			VideoName: "【P17】二年级上《梅花》宋·王安石.mp4",
+			FileName:  "1007/a28ffeef-2069-4ad1-978f-51b5f413ae73.mp4",
+		},
+		{
+			VideoName: "【P18】二年级上《望庐山瀑布》唐·李白.mp4",
+			FileName:  "1007/7b6c00f4-e64a-4c90-8c4a-8b7c31a69a21.mp4",
+		},
+		{
+			VideoName: "【P19】二年级上《小儿垂钓》唐·胡令能.mp4",
+			FileName:  "1007/0f1956dc-8dbc-4796-95bb-392d3b549d66.mp4",
+		},
+		{
+			VideoName: "【P1】一年级上《咏鹅》》唐·骆宾王.mp4",
+			FileName:  "1007/aa5b144b-0b26-4861-b27d-f4777c1d7eaa.mp4",
+		},
+		{
+			VideoName: "【P20】二年级上《夜宿山寺》唐·李白.mp4",
+			FileName:  "1007/46d82fae-211f-4288-9d93-b3d9ccaaa7e7.mp4",
+		},
+		{
+			VideoName: "【P21】2下（村居）清高鼎.mp4",
+			FileName:  "1007/892f59ad-fb8c-4340-879b-10b183c95cf9.mp4",
+		},
+		{
+			VideoName: "【P22】2下（赋得古原草送别）唐白居易.mp4",
+			FileName:  "1007/d6871428-9f5f-476e-9b4a-cdd6349f5216.mp4",
+		},
+		{
+			VideoName: "【P23】2下（画鸡）明唐寅.mp4",
+			FileName:  "1007/08cd22db-f2eb-40e6-a3f5-75bd208782c8.mp4",
+		},
+		{
+			VideoName: "【P24】2下（绝句）唐杜甫.mp4",
+			FileName:  "1007/d9fae82b-e295-47e4-a4b3-b3049caa6289.mp4",
+		},
+		{
+			VideoName: "【P25】2下（悯农其一）李绅.mp4",
+			FileName:  "1007/6203370a-a6d2-4f3e-8735-bd5913b9764d.mp4",
+		},
+		{
+			VideoName: "【P26】2下（晓出净慈寺送林子方）宋杨万里.mp4",
+			FileName:  "1007/67b7a653-fec5-4dc1-87f2-1debf53c0464.mp4",
+		},
+		{
+			VideoName: "【P27】2下（咏柳）唐贺知章.mp4",
+			FileName:  "1007/4ca058e2-b4dc-48a7-8487-3f8f782c2467.mp4",
+		},
+		{
+			VideoName: "【P28】2下（昼夜书所见）清查慎行.mp4",
+			FileName:  "1007/004be400-b47b-4a93-a36a-a51d29832172.mp4",
+		},
+		{
+			VideoName: "【P29】3上（山行）唐杜牧.mp4",
+			FileName:  "1007/df7af047-2225-46a5-9ed1-e51a1a01d4ab.mp4",
+		},
+		{
+			VideoName: "【P2】一年级上《古朗月行》唐·李白.mp4",
+			FileName:  "1007/815f8f70-49b8-427d-a482-56b3a93fe317.mp4",
+		},
+		{
+			VideoName: "【P30】3上（所见）清袁牧.mp4",
+			FileName:  "1007/c1b19cc0-f9a4-4268-bf80-df5de240b0e8.mp4",
+		},
+		{
+			VideoName: "【P31】3上《采莲曲》唐王昌龄.mp4",
+			FileName:  "1007/9b051789-8e09-4382-8893-91209fa4cbed.mp4",
+		},
+		{
+			VideoName: "【P32】3上《望洞庭》唐刘禹锡.mp4",
+			FileName:  "1007/829bf6a2-680f-4f2b-aa78-5b4d16c7f211.mp4",
+		},
+		{
+			VideoName: "【P33】3上《望天门山》唐李白.mp4",
+			FileName:  "1007/02477b1d-a0d7-4da9-94cb-5ec8aa8c191c.mp4",
+		},
+		{
+			VideoName: "【P34】3上《饮湖上初晴后雨》宋苏轼.mp4",
+			FileName:  "1007/dc86cd7a-dd6a-4eb6-a2d5-9b693dd77542.mp4",
+		},
+		{
+			VideoName: "【P35】3上《早发白帝城》唐李白.mp4",
+			FileName:  "1007/0b644ca5-5e93-4b38-8692-1408a65c933f.mp4",
+		},
+		{
+			VideoName: "【P36】3上《赠刘景文》宋苏轼.mp4",
+			FileName:  "1007/cbe4d784-cefa-4df2-bc6e-1e359624edaa.mp4",
+		},
+		{
+			VideoName: "【P37】3上《舟夜书所见》.mp4",
+			FileName:  "1007/031b5fd5-648c-44bb-8029-3c7140b189fb.mp4",
+		},
+		{
+			VideoName: "【P38】3下《滁州西涧》唐韦应物.mp4",
+			FileName:  "1007/7ea33594-d1fd-4d94-87dd-dd64bee9ee36.mp4",
+		},
+		{
+			VideoName: "【P39】3下《大林寺桃花》唐白居易.mp4",
+			FileName:  "1007/a9bc3e60-e77c-43b1-902c-60ddc6ee94c9.mp4",
+		},
+		{
+			VideoName: "【P3】一年级上《江南》汉乐府.mp4",
+			FileName:  "1007/37007636-d16c-4033-bb67-ee7d4d86b678.mp4",
+		},
+		{
+			VideoName: "【P40】3下《惠崇春江晚景》宋苏轼.mp4",
+			FileName:  "1007/9d2bab91-0139-47a4-a10c-d0474b29f287.mp4",
+		},
+		{
+			VideoName: "【P41】3下《九月九日忆山东兄弟》唐王维.mp4",
+			FileName:  "1007/26a175ea-9d82-49e6-9adb-a6ca236c509b.mp4",
+		},
+		{
+			VideoName: "【P42】3下《绝句》（迟日）唐杜甫.mp4",
+			FileName:  "1007/2fe60df7-4166-4790-816a-fd597dddb38b.mp4",
+		},
+		{
+			VideoName: "【P43】3下《清明》唐杜牧.mp4",
+			FileName:  "1007/c2f02364-7add-485e-a5c7-45f2d99e4132.mp4",
+		},
+		{
+			VideoName: "【P44】3下《三衢道中》宋曾几.mp4",
+			FileName:  "1007/b0a05992-3cef-4fd6-9bee-c3299ae3ae8d.mp4",
+		},
+		{
+			VideoName: "【P45】3下《忆江南》唐白居易.mp4",
+			FileName:  "1007/08414ed2-d7f8-4ce8-8a1f-b4d9fc615e05.mp4",
+		},
+		{
+			VideoName: "【P46】3下《元日》宋王安石.mp4",
+			FileName:  "1007/7621fbaf-4c0f-4827-af3b-961c4beb34f4.mp4",
+		},
+		{
+			VideoName: "【P4】一年级上《风》唐·李峤.mp4",
+			FileName:  "1007/5ac5ff96-9d27-4ce9-838a-dce9302f24da.mp4",
+		},
+		{
+			VideoName: "【P5】一年级上《悯农（其二）》李绅.mp4",
+			FileName:  "1007/3d607f40-d86f-4723-8f2b-f18feccdf200.mp4",
+		},
+		{
+			VideoName: "【P6】一年级上《画》唐·王维.mp4",
+			FileName:  "1007/463bb4c9-ad77-42ca-ac70-07e16e8a51f4.mp4",
+		},
+		{
+			VideoName: "【P7】一年级下《小池》宋·杨万里.mp4",
+			FileName:  "1007/e25aa6d4-eff3-43c0-818c-1272cf15de00.mp4",
+		},
+		{
+			VideoName: "【P8】一年级下《春晓》唐·孟浩然.mp4",
+			FileName:  "1007/04bdb9ee-bc7a-479a-8530-428dc55c563e.mp4",
+		},
+		{
+			VideoName: "【P9】一年级下《池上》唐·白居易.mp4",
+			FileName:  "1007/e89eaec1-fc87-463b-ae9f-17fea22f25a3.mp4",
+		},
 	}
 
 	for i := range list {
