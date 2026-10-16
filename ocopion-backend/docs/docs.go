@@ -15,6 +15,68 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/cloudflare/fast-ip": {
+            "get": {
+                "description": "状态为 idle/running/succeeded/failed；时间为 RFC3339，未发生时为 null。任务失败仍返回成功封装。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cloudflare"
+                ],
+                "summary": "查询最近一次 Cloudflare 优选任务",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cloudflare.Task"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "无请求体；后台执行，运行期间重复调用返回同一任务。失败原因通过任务 error 返回。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cloudflare"
+                ],
+                "summary": "启动 Cloudflare IPv4 最低延迟优选",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cloudflare.Task"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/meta": {
             "get": {
                 "description": "返回 public/meta.json 中的动态 JSON 内容；文件缺失时返回 deployTime=unknown。",
@@ -73,6 +135,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "cloudflare.Task": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "ips": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "idle",
+                        "running",
+                        "succeeded",
+                        "failed"
+                    ]
+                }
+            }
+        },
         "response.Response": {
             "type": "object",
             "properties": {

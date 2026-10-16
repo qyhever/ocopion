@@ -1,0 +1,28 @@
+package cloudflare
+
+import (
+	"github.com/gin-gonic/gin"
+	"ocopion/internal/pkg/response"
+)
+
+type Controller struct{ service *Service }
+
+func NewController(service *Service) *Controller { return &Controller{service: service} }
+
+// Start godoc
+// @Summary 启动 Cloudflare IPv4 最低延迟优选
+// @Description 无请求体；后台执行，运行期间重复调用返回同一任务。失败原因通过任务 error 返回。
+// @Tags cloudflare
+// @Produce json
+// @Success 200 {object} response.Response{data=Task}
+// @Router /cloudflare/fast-ip [post]
+func (c *Controller) Start(ctx *gin.Context) { response.Success(ctx, c.service.Start()) }
+
+// Get godoc
+// @Summary 查询最近一次 Cloudflare 优选任务
+// @Description 状态为 idle/running/succeeded/failed；时间为 RFC3339，未发生时为 null。任务失败仍返回成功封装。
+// @Tags cloudflare
+// @Produce json
+// @Success 200 {object} response.Response{data=Task}
+// @Router /cloudflare/fast-ip [get]
+func (c *Controller) Get(ctx *gin.Context) { response.Success(ctx, c.service.Get()) }

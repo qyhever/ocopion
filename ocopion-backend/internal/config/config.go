@@ -12,14 +12,17 @@ import (
 
 // Config 应用配置结构体
 type Config struct {
-	Mode     string         `mapstructure:"mode"`
-	Server   ServerConfig   `mapstructure:"server"`
-	File     FileConfig     `mapstructure:"file"`
-	Logger   LoggerConfig   `mapstructure:"logger"`
-	Database DatabaseConfig `mapstructure:"database"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	Auth     AuthConfig     `mapstructure:"auth"`
-	Postal   PostalConfig   `mapstructure:"postal"`
+	CFSTBinPath      string         `mapstructure:"cfst_bin_path"`
+	OutputFastIPPath string         `mapstructure:"output_fast_ip_path"`
+	CFSTURL          string         `mapstructure:"cfst_url"`
+	Mode             string         `mapstructure:"mode"`
+	Server           ServerConfig   `mapstructure:"server"`
+	File             FileConfig     `mapstructure:"file"`
+	Logger           LoggerConfig   `mapstructure:"logger"`
+	Database         DatabaseConfig `mapstructure:"database"`
+	JWT              JWTConfig      `mapstructure:"jwt"`
+	Auth             AuthConfig     `mapstructure:"auth"`
+	Postal           PostalConfig   `mapstructure:"postal"`
 }
 
 // ServerConfig 服务器配置
@@ -141,6 +144,10 @@ func addConfigPaths(loader *viper.Viper, workDir string) {
 func bindEnvVars(loader *viper.Viper) {
 	loader.SetEnvPrefix("OCOPION")
 	loader.AutomaticEnv()
+	loader.SetDefault("output_fast_ip_path", "./fast-ip.txt")
+	loader.BindEnv("cfst_bin_path", "OCOPION_CFST_BIN_PATH")
+	loader.BindEnv("output_fast_ip_path", "OCOPION_OUTPUT_FAST_IP_PATH")
+	loader.BindEnv("cfst_url", "OCOPION_CFST_URL")
 
 	loader.BindEnv("mode", "OCOPION_MODE")
 

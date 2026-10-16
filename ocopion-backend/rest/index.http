@@ -87,3 +87,9 @@ Authorization: Bearer {{token}}
 {
   "status": "active"
 }
+
+### 启动 Cloudflare IPv4 最低延迟优选（无请求体，后台执行）
+post http://{{host}}/api/cloudflare/fast-ip HTTP/1.1
+
+### 查询最近一次优选任务（idle/running/succeeded/failed）
+get http://{{host}}/api/cloudflare/fast-ip HTTP/1.1

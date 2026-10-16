@@ -7,6 +7,7 @@ import (
 
 	"ocopion/internal/config"
 	"ocopion/internal/module/app"
+	"ocopion/internal/module/cloudflare"
 	"ocopion/internal/module/post"
 	"ocopion/internal/module/video"
 	"ocopion/internal/pkg/db"
@@ -34,6 +35,10 @@ func newRouter(postController *post.Controller, appController *app.Controller, v
 	fmt.Printf("Go Version %v\n", runtime.Version())
 
 	api := r.Group("/api")
+	cfController := cloudflare.NewController(cloudflare.NewService(cloudflare.NewRepository(config.GetConfig())))
+	api.POST("/cloudflare/fast-ip", cfController.Start)
+	api.GET("/cloudflare/fast-ip", cfController.Get)
+
 	api.GET("/meta", appController.GetMeta)
 	api.GET("/video", videoController.GetVideoList)
 

@@ -39,3 +39,8 @@ postal:
   from_email: "" # 发件邮箱
   from_pass: ""  # 发件邮箱密码
   from_name: ""  # 发件人显示名称
+
+# cfst 与 IPv4 网段文件 ip.txt 由部署方安装在同一目录
+cfst_bin_path: ""
+output_fast_ip_path: "./fast-ip.txt"
+cfst_url: ""

@@ -1,5 +1,25 @@
 basePath: /api
 definitions:
+  cloudflare.Task:
+    properties:
+      error:
+        type: string
+      finished_at:
+        type: string
+      ips:
+        items:
+          type: string
+        type: array
+      started_at:
+        type: string
+      status:
+        enum:
+        - idle
+        - running
+        - succeeded
+        - failed
+        type: string
+    type: object
   response.Response:
     properties:
       code:
@@ -15,6 +35,41 @@ info:
   title: ocopion-backend API
   version: "1.0"
 paths:
+  /cloudflare/fast-ip:
+    get:
+      description: 状态为 idle/running/succeeded/failed；时间为 RFC3339，未发生时为 null。任务失败仍返回成功封装。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cloudflare.Task'
+              type: object
+      summary: 查询最近一次 Cloudflare 优选任务
+      tags:
+      - cloudflare
+    post:
+      description: 无请求体；后台执行，运行期间重复调用返回同一任务。失败原因通过任务 error 返回。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cloudflare.Task'
+              type: object
+      summary: 启动 Cloudflare IPv4 最低延迟优选
+      tags:
+      - cloudflare
   /meta:
     get:
       consumes:
