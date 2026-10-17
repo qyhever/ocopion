@@ -16,5 +16,6 @@ func NewGormDB(dsn string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
+	fmt.Println("✅ connected to mysql successfully")
 	return db, nil
 }
