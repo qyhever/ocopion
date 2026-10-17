@@ -1,8 +1,9 @@
 package cloudflare
 
 import (
-	"github.com/gin-gonic/gin"
 	"ocopion/internal/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Controller struct{ service *Service }

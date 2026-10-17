@@ -7,13 +7,14 @@ import (
 	"io"
 	"math"
 	"net/netip"
-	"ocopion/internal/config"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"ocopion/internal/config"
 )
 
 const outputLimit = 4096
