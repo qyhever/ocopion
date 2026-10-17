@@ -44,3 +44,7 @@ postal:
 cfst_bin_path: ""
 output_fast_ip_path: "./fast-ip.txt"
 cfst_url: ""
+clash_template_path: "./tmp/template.yaml"
+output_clash_path: "./public/kdd.yaml"
+upload_config_file_url: "http://localhost:8301/app/uploadConfigFile"
+upload_config_file_secret: "hi"
