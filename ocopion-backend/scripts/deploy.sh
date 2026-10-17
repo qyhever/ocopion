@@ -43,6 +43,8 @@ rsync -avz --progress --partial ./public qyhever:/opt/apps/ocopion-backend
 rsync -avz --delete --progress --partial ./docs qyhever:/opt/apps/ocopion-backend
 rsync -avz --progress --partial ./internal/config/app.yml qyhever:/opt/apps/ocopion-backend
 rsync -avz --progress --partial ./internal/config/prod.yml qyhever:/opt/apps/ocopion-backend
+ssh qyhever 'mkdir -p /opt/apps/ocopion-backend/data'
+rsync -avz --progress --partial ./tmp/clash-template.yaml qyhever:/opt/apps/ocopion-backend/data/
 echo "✅ 上传完成！"
 
 echo "🔄 重启远程 ocopion 服务..."

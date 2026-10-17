@@ -12,17 +12,21 @@ import (
 
 // Config 应用配置结构体
 type Config struct {
-	CFSTBinPath      string         `mapstructure:"cfst_bin_path"`
-	OutputFastIPPath string         `mapstructure:"output_fast_ip_path"`
-	CFSTURL          string         `mapstructure:"cfst_url"`
-	Mode             string         `mapstructure:"mode"`
-	Server           ServerConfig   `mapstructure:"server"`
-	File             FileConfig     `mapstructure:"file"`
-	Logger           LoggerConfig   `mapstructure:"logger"`
-	Database         DatabaseConfig `mapstructure:"database"`
-	JWT              JWTConfig      `mapstructure:"jwt"`
-	Auth             AuthConfig     `mapstructure:"auth"`
-	Postal           PostalConfig   `mapstructure:"postal"`
+	UploadConfigFileURL    string         `mapstructure:"upload_config_file_url"`
+	UploadConfigFileSecret string         `mapstructure:"upload_config_file_secret"`
+	ClashTemplatePath      string         `mapstructure:"clash_template_path"`
+	OutputClashPath        string         `mapstructure:"output_clash_path"`
+	CFSTBinPath            string         `mapstructure:"cfst_bin_path"`
+	OutputFastIPPath       string         `mapstructure:"output_fast_ip_path"`
+	CFSTURL                string         `mapstructure:"cfst_url"`
+	Mode                   string         `mapstructure:"mode"`
+	Server                 ServerConfig   `mapstructure:"server"`
+	File                   FileConfig     `mapstructure:"file"`
+	Logger                 LoggerConfig   `mapstructure:"logger"`
+	Database               DatabaseConfig `mapstructure:"database"`
+	JWT                    JWTConfig      `mapstructure:"jwt"`
+	Auth                   AuthConfig     `mapstructure:"auth"`
+	Postal                 PostalConfig   `mapstructure:"postal"`
 }
 
 // ServerConfig 服务器配置
@@ -145,9 +149,15 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.SetEnvPrefix("OCOPION")
 	loader.AutomaticEnv()
 	loader.SetDefault("output_fast_ip_path", "./fast-ip.txt")
+	loader.SetDefault("clash_template_path", "./internal/data/clash-template.yaml")
+	loader.SetDefault("output_clash_path", "./public/clash-kdd.yaml")
+	loader.BindEnv("clash_template_path", "OCOPION_CLASH_TEMPLATE_PATH")
+	loader.BindEnv("output_clash_path", "OCOPION_OUTPUT_CLASH_PATH")
 	loader.BindEnv("cfst_bin_path", "OCOPION_CFST_BIN_PATH")
 	loader.BindEnv("output_fast_ip_path", "OCOPION_OUTPUT_FAST_IP_PATH")
 	loader.BindEnv("cfst_url", "OCOPION_CFST_URL")
+	loader.BindEnv("upload_config_file_url", "OCOPION_UPLOAD_CONFIG_FILE_URL")
+	loader.BindEnv("upload_config_file_secret", "OCOPION_UPLOAD_CONFIG_FILE_SECRET")
 
 	loader.BindEnv("mode", "OCOPION_MODE")
 

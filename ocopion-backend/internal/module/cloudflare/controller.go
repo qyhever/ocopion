@@ -11,7 +11,7 @@ func NewController(service *Service) *Controller { return &Controller{service: s
 
 // Start godoc
 // @Summary 启动 Cloudflare IPv4 最低延迟优选
-// @Description 无请求体；后台执行，运行期间重复调用返回同一任务。失败原因通过任务 error 返回。
+// @Description 无请求体；后台执行，运行期间重复调用返回同一任务。优选 16 个 IP 后从模板新增 US/KR 共 32 个节点，依次保存 IP 文本和 Clash 配置，然后按配置上传文件，上传成功后才成功。上传失败保留本地文件。模板异常不更新文件；Clash 保存失败时 IP 文本可能已更新，旧 Clash 文件保留。失败原因通过任务 error 返回。
 // @Tags cloudflare
 // @Produce json
 // @Success 200 {object} response.Response{data=Task}

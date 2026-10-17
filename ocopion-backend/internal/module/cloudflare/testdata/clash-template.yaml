@@ -1,0 +1,57 @@
+mixed-port: 7890
+mode: rule
+dns:
+  enable: true
+  nameserver: [223.5.5.5, 119.29.29.29]
+proxies:
+  - name: "🇺🇸 US-CF-Vless-WS"
+    type: vless
+    server: us.example.com
+    port: 443
+    uuid: 00000000-0000-4000-8000-000000000001
+    network: ws
+    tls: true
+    udp: true
+    servername: us.example.com
+    ws-opts:
+      path: /us-ws
+      headers:
+        Host: us.example.com
+      max-early-data: 2048
+  - name: "🇰🇷 KR-CF-Vless-WS"
+    type: vless
+    server: kr.example.com
+    port: 443
+    uuid: 00000000-0000-4000-8000-000000000002
+    network: ws
+    tls: true
+    servername: kr.example.com
+    ws-opts:
+      path: /kr-ws
+      headers:
+        Host: kr.example.com
+proxy-groups:
+  # 手动选择
+  - name: "🚀 节点选择"
+    type: select
+    proxies: ["♻️ 自动选择", "🇺🇸 US-CF-Vless-WS", "🇰🇷 KR-CF-Vless-WS"]
+  # 自动测速选择
+  - name: "♻️ 自动选择"
+    type: url-test
+    proxies: ["🇺🇸 US-CF-Vless-WS", "🇰🇷 KR-CF-Vless-WS"]
+    url: https://example.com/test
+    interval: 300
+  - name: "♻️ 自动选择-US"
+    type: url-test
+    proxies: ["🇺🇸 US-CF-Vless-WS"]
+    interval: 300
+  - name: "♻️ 自动选择-KR"
+    type: url-test
+    proxies: ["🇰🇷 KR-CF-Vless-WS"]
+    interval: 300
+  - name: other
+    type: select
+    proxies: [DIRECT, "🚀 节点选择"]
+rules:
+  - DOMAIN-SUFFIX,example.com,DIRECT
+  - MATCH,🚀 节点选择

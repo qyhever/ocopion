@@ -19,15 +19,27 @@ import (
 const outputLimit = 4096
 
 type FileRepository struct {
-	binPath    string
-	outputPath string
-	url        string
-	pathError  error
+	uploadURL    string
+	uploadSecret string
+	templatePath string
+	clashPath    string
+	binPath      string
+	outputPath   string
+	url          string
+	pathError    error
 }
 
 func NewRepository(cfg *config.Config) *FileRepository {
-	r := &FileRepository{outputPath: "./fast-ip.txt"}
+	r := &FileRepository{outputPath: "./fast-ip.txt", templatePath: "./internal/data/clash-template.yaml", clashPath: "./public/clash-kdd.yaml"}
 	if cfg != nil {
+		r.uploadURL = strings.TrimSpace(cfg.UploadConfigFileURL)
+		r.uploadSecret = cfg.UploadConfigFileSecret
+		if cfg.ClashTemplatePath != "" {
+			r.templatePath = cfg.ClashTemplatePath
+		}
+		if cfg.OutputClashPath != "" {
+			r.clashPath = cfg.OutputClashPath
+		}
 		r.binPath = cfg.CFSTBinPath
 		r.url = cfg.CFSTURL
 		if cfg.OutputFastIPPath != "" {
@@ -39,6 +51,11 @@ func NewRepository(cfg *config.Config) *FileRepository {
 	}
 	if r.pathError == nil {
 		r.outputPath, r.pathError = filepath.Abs(r.outputPath)
+	}
+	for _, path := range []*string{&r.templatePath, &r.clashPath} {
+		if r.pathError == nil {
+			*path, r.pathError = filepath.Abs(*path)
+		}
 	}
 	return r
 }
@@ -85,7 +102,7 @@ func (r *FileRepository) Measure(ctx context.Context) ([]Candidate, error) {
 	}
 	defer os.RemoveAll(tempDir)
 	csvPath := filepath.Join(tempDir, "result.csv")
-	args := []string{"-dd", "-p", "0", "-f", input, "-o", csvPath}
+	args := []string{"-dd", "-p", strconv.Itoa(fastIPCount), "-f", input, "-o", csvPath}
 	if r.url != "" {
 		args = append(args, "-url", r.url)
 	}
@@ -157,11 +174,82 @@ func (r *FileRepository) Save(ips []string) error {
 	if len(ips) != fastIPCount {
 		return fmt.Errorf("保存结果必须为 %d 个 IP", fastIPCount)
 	}
-	dir := filepath.Dir(r.outputPath)
+	if err := r.validatePaths(); err != nil {
+		return err
+	}
+	return atomicWrite(r.outputPath, []byte(strings.Join(ips, "\n")+"\n"))
+}
+
+func (r *FileRepository) ReadClashTemplate() ([]byte, error) {
+	if err := r.validatePaths(); err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(r.templatePath)
+	if err != nil {
+		return nil, fmt.Errorf("读取 Clash 模板失败: %w", err)
+	}
+	return data, nil
+}
+
+func (r *FileRepository) SaveClash(data []byte) error {
+	if err := r.validatePaths(); err != nil {
+		return err
+	}
+	if err := atomicWrite(r.clashPath, data); err != nil {
+		return fmt.Errorf("保存 Clash 配置失败: %w", err)
+	}
+	return nil
+}
+
+// 同时检查规范路径、符号链接和既有文件的硬链接，避免覆盖输入文件。
+func (r *FileRepository) validatePaths() error {
+	if r.pathError != nil {
+		return r.pathError
+	}
+	paths := []string{r.templatePath, r.outputPath, r.clashPath}
+	if r.binPath != "" {
+		paths = append(paths, filepath.Join(filepath.Dir(r.binPath), "ip.txt"))
+	}
+	for i, a := range paths {
+		for _, b := range paths[i+1:] {
+			if samePath(a, b) {
+				return fmt.Errorf("文件路径冲突: %s 与 %s", a, b)
+			}
+		}
+	}
+	return nil
+}
+
+func samePath(a, b string) bool {
+	if filepath.Clean(a) == filepath.Clean(b) {
+		return true
+	}
+	ai, ae := os.Stat(a)
+	bi, be := os.Stat(b)
+	if ae == nil && be == nil && os.SameFile(ai, bi) {
+		return true
+	}
+	return resolvedPath(a) == resolvedPath(b)
+}
+
+// 输出尚不存在时，也解析已有父目录的符号链接。
+func resolvedPath(path string) string {
+	if resolved, err := filepath.EvalSymlinks(path); err == nil {
+		return resolved
+	}
+	parent := filepath.Dir(path)
+	if parent == path {
+		return path
+	}
+	return filepath.Join(resolvedPath(parent), filepath.Base(path))
+}
+
+func atomicWrite(path string, data []byte) error {
+	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("创建结果目录失败: %w", err)
 	}
-	file, err := os.CreateTemp(dir, ".fast-ip-*")
+	file, err := os.CreateTemp(dir, ".ocopion-*")
 	if err != nil {
 		return fmt.Errorf("创建结果临时文件失败: %w", err)
 	}
@@ -170,7 +258,7 @@ func (r *FileRepository) Save(ips []string) error {
 	if err = file.Chmod(0644); err != nil {
 		return err
 	}
-	if _, err = file.WriteString(strings.Join(ips, "\n") + "\n"); err != nil {
+	if _, err = file.Write(data); err != nil {
 		return fmt.Errorf("写入结果失败: %w", err)
 	}
 	if err = file.Sync(); err != nil {
@@ -179,7 +267,7 @@ func (r *FileRepository) Save(ips []string) error {
 	if err = file.Close(); err != nil {
 		return fmt.Errorf("关闭结果文件失败: %w", err)
 	}
-	if err = os.Rename(file.Name(), r.outputPath); err != nil {
+	if err = os.Rename(file.Name(), path); err != nil {
 		return fmt.Errorf("替换结果文件失败: %w", err)
 	}
 	return nil

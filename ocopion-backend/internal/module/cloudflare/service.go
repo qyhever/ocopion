@@ -6,6 +6,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Service struct {
@@ -56,14 +58,28 @@ func (s *Service) run() {
 	defer cancel()
 	candidates, err := s.repo.Measure(ctx)
 	var ips []string
+	var clash []byte
 	if err == nil {
 		ips, err = selectIPs(candidates)
+	}
+	if err == nil {
+		var template []byte
+		template, err = s.repo.ReadClashTemplate()
+		if err == nil {
+			clash, err = generateClash(template, ips)
+		}
 	}
 	if err == nil {
 		err = ctx.Err()
 	}
 	if err == nil {
 		err = s.repo.Save(ips)
+	}
+	if err == nil {
+		err = s.repo.SaveClash(clash)
+	}
+	if err == nil {
+		err = s.repo.UploadClash(ctx)
 	}
 	now := time.Now().UTC()
 	s.mu.Lock()
@@ -76,6 +92,14 @@ func (s *Service) run() {
 	}
 	s.task.Status = "succeeded"
 	s.task.IPs = ips
+	zap.L().Info("Cloudflare 优选及配置处理成功",
+		zap.String("status", s.task.Status),
+		zap.Int("ip_count", len(ips)),
+		zap.Strings("ips", ips),
+		zap.Time("started_at", *s.task.StartedAt),
+		zap.Time("finished_at", now),
+		zap.Duration("duration", now.Sub(*s.task.StartedAt)),
+	)
 }
 
 func selectIPs(candidates []Candidate) ([]string, error) {

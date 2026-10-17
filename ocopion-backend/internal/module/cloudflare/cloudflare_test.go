@@ -72,7 +72,13 @@ func mockRepo(t *testing.T, script string) *FileRepository {
 	writeFile(t, filepath.Join(dir, "fixture.csv"), fixtureCSV(), 0644)
 	bin := filepath.Join(dir, "cfst mock")
 	writeFile(t, bin, "#!/bin/sh\n"+script, 0755)
-	return NewRepository(&config.Config{CFSTBinPath: bin, OutputFastIPPath: filepath.Join(dir, "output", "fast-ip.txt"), CFSTURL: "https://example.com/test?x=1&y=2"})
+	template, err := os.ReadFile("testdata/clash-template.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	templatePath := filepath.Join(dir, "template.yaml")
+	writeFile(t, templatePath, string(template), 0644)
+	return NewRepository(&config.Config{ClashTemplatePath: templatePath, OutputClashPath: filepath.Join(dir, "public", "clash.yaml"), CFSTBinPath: bin, OutputFastIPPath: filepath.Join(dir, "output", "fast-ip.txt"), CFSTURL: "https://example.com/test?x=1&y=2"})
 }
 
 const successScript = `pwd > cwd.txt
@@ -161,7 +167,7 @@ func TestBackgroundTaskAndHTTP(t *testing.T) {
 	}
 	argsFile, _ := os.ReadFile(filepath.Join(dir, "args.txt"))
 	args := strings.Split(strings.TrimSpace(string(argsFile)), "\n")
-	if len(args) != 9 || !reflect.DeepEqual(args[:5], []string{"-dd", "-p", "0", "-f", filepath.Join(dir, "ip.txt")}) || args[5] != "-o" || args[7] != "-url" || args[8] != repo.url {
+	if len(args) != 9 || !reflect.DeepEqual(args[:5], []string{"-dd", "-p", "16", "-f", filepath.Join(dir, "ip.txt")}) || args[5] != "-o" || args[7] != "-url" || args[8] != repo.url {
 		t.Fatalf("wrong args: %q", args)
 	}
 	if _, err := os.Stat(filepath.Dir(args[6])); !os.IsNotExist(err) {

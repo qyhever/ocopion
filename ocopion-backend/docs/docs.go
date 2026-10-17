@@ -47,7 +47,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "无请求体；后台执行，运行期间重复调用返回同一任务。失败原因通过任务 error 返回。",
+                "description": "无请求体；后台执行，运行期间重复调用返回同一任务。优选 16 个 IP 后从模板新增 US/KR 共 32 个节点，依次保存 IP 文本和 Clash 配置，然后按配置上传文件，上传成功后才成功。上传失败保留本地文件。模板异常不更新文件；Clash 保存失败时 IP 文本可能已更新，旧 Clash 文件保留。失败原因通过任务 error 返回。",
                 "produces": [
                     "application/json"
                 ],
