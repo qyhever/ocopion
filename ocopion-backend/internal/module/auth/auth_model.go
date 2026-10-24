@@ -8,6 +8,7 @@ type RefreshRequest struct {
 	RefreshToken string `json:"refreshToken"`
 }
 type TokenResponse struct {
+	UserID       int64  `json:"-"`
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
 }

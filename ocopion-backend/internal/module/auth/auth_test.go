@@ -18,10 +18,15 @@ import (
 
 	jwtlib "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	"gorm.io/gorm"
 )
 
 func TestAuthentication(t *testing.T) {
+	core, logs := observer.New(zap.InfoLevel)
+	undo := zap.ReplaceGlobals(zap.New(core))
+	t.Cleanup(undo)
 	previous := config.GlobalConfig
 	t.Cleanup(func() { config.GlobalConfig = previous })
 	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "test-secret"}}
@@ -48,6 +53,8 @@ func TestAuthentication(t *testing.T) {
 		t.Helper()
 		req := httptest.NewRequest(method, path, strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("User-Agent", "auth-test")
+		req.RemoteAddr = "192.0.2.1:12345"
 		if token != "" {
 			req.Header.Set("Authorization", "Bearer "+token)
 		}
@@ -121,6 +128,22 @@ func TestAuthentication(t *testing.T) {
 	repo.users[1] = u
 	call("GET", "/api/user/me", "", access, 401, 1006)
 	call("POST", "/api/auth/refresh", fmt.Sprintf(`{"refreshToken":%q}`, refresh), "", 401, 1006)
+	entries := logs.FilterMessage("登录成功").All()
+	if len(entries) != 1 {
+		t.Fatalf("expected one successful login log, got %d", len(entries))
+	}
+	fields := entries[0].ContextMap()
+	for key, want := range map[string]interface{}{
+		"user_id": int64(1), "email": "one@example.com", "ip": "192.0.2.1",
+		"user-agent": "auth-test", "method": "POST", "path": "/api/auth/login",
+	} {
+		if fields[key] != want {
+			t.Errorf("login log %s = %v, want %v", key, fields[key], want)
+		}
+	}
+	if len(fields) != 6 {
+		t.Fatalf("unexpected login log fields: %v", fields)
+	}
 }
 
 // Only the existing user repository reads are needed for authentication.

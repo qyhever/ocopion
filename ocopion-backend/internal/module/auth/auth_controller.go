@@ -6,6 +6,7 @@ import (
 	"ocopion/internal/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type AuthController struct{ service *AuthService }
@@ -38,6 +39,14 @@ func (ctl *AuthController) Login(c *gin.Context) {
 		respondError(c, err)
 		return
 	}
+	zap.L().Info("登录成功",
+		zap.Int64("user_id", tokens.UserID),
+		zap.String("email", input.Email),
+		zap.String("ip", c.ClientIP()),
+		zap.String("user-agent", c.Request.UserAgent()),
+		zap.String("method", c.Request.Method),
+		zap.String("path", c.Request.URL.Path),
+	)
 	response.Success(c, tokens)
 }
 

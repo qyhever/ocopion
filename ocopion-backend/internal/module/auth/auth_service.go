@@ -38,7 +38,7 @@ func issueTokens(id int64) (*TokenResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &TokenResponse{AccessToken: access, RefreshToken: refresh}, nil
+	return &TokenResponse{UserID: id, AccessToken: access, RefreshToken: refresh}, nil
 }
 
 func (s *AuthService) Login(ctx context.Context, input LoginRequest) (*TokenResponse, error) {
