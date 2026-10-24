@@ -4,8 +4,9 @@ import "github.com/gin-gonic/gin"
 
 // 全局状态码
 const (
-	CodeSuccess = 200
-	CodeFail    = -1
+	CodeSuccess      = 200
+	CodeFail         = -1
+	CodeUnauthorized = 1006
 )
 
 // Response 统一接口返回结构体
@@ -38,4 +39,9 @@ func FailWithCode(c *gin.Context, code int, msg string) {
 		Code:    code,
 		Message: msg,
 	})
+}
+
+// Unauthorized 返回认证失败，并停止后续处理。
+func Unauthorized(c *gin.Context, msg string) {
+	c.AbortWithStatusJSON(401, Response{Code: CodeUnauthorized, Message: msg, Data: (*struct{})(nil)})
 }

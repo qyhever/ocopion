@@ -60,3 +60,22 @@ func TestUploadConfigFromYAML(t *testing.T) {
 		t.Fatal("upload YAML config not loaded")
 	}
 }
+
+func TestJWTEnvOverridesYAML(t *testing.T) {
+	t.Setenv("OCOPION_JWT_SECRET", "env-secret")
+	t.Setenv("OCOPION_JWT_ACCESS_EXPIRES_IN", "15m")
+	t.Setenv("OCOPION_JWT_REFRESH_EXPIRES_IN", "168h")
+	loader := viper.New()
+	bindEnvVars(loader)
+	loader.SetConfigType("yaml")
+	if err := loader.ReadConfig(strings.NewReader("jwt:\n  secret: yaml-secret\n  access_expires_in: 2h\n  refresh_expires_in: 72h\n")); err != nil {
+		t.Fatal(err)
+	}
+	var cfg Config
+	if err := loader.Unmarshal(&cfg); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.JWT.Secret != "env-secret" || cfg.JWT.AccessExpiresIn != "15m" || cfg.JWT.RefreshExpiresIn != "168h" {
+		t.Fatalf("JWT env override failed: %#v", cfg.JWT)
+	}
+}

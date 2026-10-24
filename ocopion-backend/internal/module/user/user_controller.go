@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"ocopion/internal/middleware"
 	"ocopion/internal/pkg/response"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,8 @@ func positiveID(raw string) (int64, error) {
 
 func respondError(c *gin.Context, err error) {
 	switch {
+	case errors.Is(err, ErrUnauthorized):
+		response.Unauthorized(c, err.Error())
 	case errors.Is(err, ErrInvalidInput):
 		response.Fail(c, "参数不合法")
 	case errors.Is(err, ErrEmailExists):
@@ -112,4 +115,19 @@ func (ctl *Controller) List(c *gin.Context) {
 		return
 	}
 	response.Success(c, newListResponse(result))
+}
+
+func (ctl *Controller) Me(c *gin.Context) {
+	value, exists := c.Get(middleware.ContextUserIDKey)
+	id, ok := value.(uint64)
+	if !exists || !ok {
+		respondError(c, ErrUnauthorized)
+		return
+	}
+	user, err := ctl.service.Me(c.Request.Context(), int64(id))
+	if err != nil {
+		respondError(c, err)
+		return
+	}
+	response.Success(c, newUserResponse(*user))
 }

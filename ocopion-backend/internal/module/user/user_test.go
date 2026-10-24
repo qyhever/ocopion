@@ -346,3 +346,12 @@ func TestPasswordByteBoundary(t *testing.T) {
 		}
 	}
 }
+
+func (r *memoryRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
+	for _, user := range r.users {
+		if user.Email == email {
+			return r.Get(ctx, user.ID)
+		}
+	}
+	return nil, gorm.ErrRecordNotFound
+}

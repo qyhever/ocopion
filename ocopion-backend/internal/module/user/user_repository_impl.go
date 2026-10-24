@@ -65,3 +65,11 @@ func translateError(err error) error {
 	}
 	return err
 }
+
+func (r *GormRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
+	var user User
+	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

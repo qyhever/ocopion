@@ -177,9 +177,9 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.BindEnv("database.mysql.password", "OCOPION_DATABASE_MYSQL_PASSWORD")
 	loader.BindEnv("database.mysql.db_name", "OCOPION_DATABASE_MYSQL_DB_NAME")
 
-	viper.BindEnv("jwt.secret", "OCOPION_JWT_SECRET")
-	viper.BindEnv("jwt.access_expires_in", "OCOPION_JWT_ACCESS_EXPIRES_IN")
-	viper.BindEnv("jwt.refresh_expires_in", "OCOPION_JWT_REFRESH_EXPIRES_IN")
+	loader.BindEnv("jwt.secret", "OCOPION_JWT_SECRET")
+	loader.BindEnv("jwt.access_expires_in", "OCOPION_JWT_ACCESS_EXPIRES_IN")
+	loader.BindEnv("jwt.refresh_expires_in", "OCOPION_JWT_REFRESH_EXPIRES_IN")
 
 }
 

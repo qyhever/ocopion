@@ -94,3 +94,8 @@ func newListResponse(result ListResult) ListResponse {
 	}
 	return ListResponse{List: list, PageNum: result.PageNum, PageSize: result.PageSize, Total: result.Total}
 }
+
+// IsActive reports whether the user can authenticate.
+func (u *User) IsActive() bool {
+	return u != nil && u.ID > 0 && !u.DeletedAt.Valid && u.Status == "active"
+}

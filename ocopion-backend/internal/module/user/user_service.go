@@ -9,11 +9,14 @@ import (
 
 	"ocopion/internal/pkg/pagination"
 	"ocopion/internal/pkg/password"
+
+	"gorm.io/gorm"
 )
 
 var (
 	ErrInvalidInput = errors.New("参数不合法")
 	ErrEmailExists  = errors.New("邮箱已存在")
+	ErrUnauthorized = errors.New("未登录或登录过期")
 )
 
 type Service struct{ repo Repository }
@@ -117,4 +120,21 @@ func (s *Service) List(ctx context.Context, page, pageSize int, keyword string) 
 	params := pagination.Normalize(page, pageSize)
 	users, total, err := s.repo.List(ctx, params, strings.TrimSpace(keyword))
 	return ListResult{List: users, PageNum: params.PageNum, PageSize: params.PageSize, Total: total}, err
+}
+
+func (s *Service) Me(ctx context.Context, id int64) (*User, error) {
+	if id <= 0 {
+		return nil, ErrUnauthorized
+	}
+	user, err := s.repo.Get(ctx, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrUnauthorized
+	}
+	if err != nil {
+		return nil, err
+	}
+	if !user.IsActive() {
+		return nil, ErrUnauthorized
+	}
+	return user, nil
 }

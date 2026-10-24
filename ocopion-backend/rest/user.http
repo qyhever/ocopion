@@ -1,9 +1,11 @@
 @hostname = localhost
 @port = 8301
 @host = {{hostname}}:{{port}}
+@accessToken = replace-with-login-access-token
 
 ### CreateUser
 post http://{{host}}/api/user HTTP/1.1
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -16,9 +18,11 @@ Content-Type: application/json
 ### GetUserByID
 @userId = 1
 get http://{{host}}/api/user/{{userId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
 
 ### UpdateUser
 put http://{{host}}/api/user/{{userId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -29,11 +33,17 @@ Content-Type: application/json
 
 ### GetUserList
 get http://{{host}}/api/user?pageNum=1&pageSize=10&keyword=example HTTP/1.1
+Authorization: Bearer {{accessToken}}
 
 ### BatchDeleteUsers
 post http://{{host}}/api/user/delete HTTP/1.1
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
   "ids": [1, 2]
 }
+
+### GetCurrentUser
+get http://{{host}}/api/user/me HTTP/1.1
+Authorization: Bearer {{accessToken}}
