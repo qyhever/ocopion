@@ -1,0 +1,47 @@
+@hostname = localhost
+@port = 8301
+@host = {{hostname}}:{{port}}
+@token = replace-with-access-token
+
+### AdminLogin
+post http://{{host}}/api/admin/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### GetAdmin
+@adminId = 1
+get http://{{host}}/api/admin/{{adminId}} HTTP/1.1
+Authorization: Bearer {{token}}
+
+### UpdateAdmin
+put http://{{host}}/api/admin/{{adminId}} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "username": "admin",
+  "name": "管理员",
+  "password": "new-password"
+}
+
+### BatchDeleteAdmins
+delete http://{{host}}/api/admin/batch HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [1, 2, 3]
+}
+
+### ToggleAdminStatus
+put http://{{host}}/api/admin/{{adminId}}/status HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": "active"
+}

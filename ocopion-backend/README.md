@@ -90,7 +90,7 @@ export OCOPION_UPLOAD_CONFIG_FILE_SECRET="<实际密钥>"
 
 默认单实例部署，任务状态保存在内存，重启恢复 `idle`，结果文件保留。结果代表 cfst 本次 IPv4 抽样中延迟最低的 16 个地址，不穷举全部 Cloudflare IP。本功能不自动下载 cfst，不添加定时任务或鉴权体系。
 
-接口定义见 `docs/swagger.yaml`，请求示例见 `rest/index.http`。
+接口定义见 `docs/swagger.yaml`，请求示例见 `rest/*.http`。
 
 ## 验证
 

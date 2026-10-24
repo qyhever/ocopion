@@ -35,7 +35,7 @@
 - 配置在 `internal/config` 中初始化，且早于 logger 和 router 启动。
 - 修改启动行为前，先检查 `internal/config/app.yml`、`dev.yml`、`dev.local.yml` 和 `prod.yml`。
 - 服务还会通过 `/public` URL 暴露 `/public` 下的静态文件；编辑 router setup 时不要破坏该路径。
-- `rest/index.http` 是查看或扩展示例 API 请求最快的位置。
+- `rest/*.http` 是查看或扩展示例 API 请求最快的位置。
 
 ## 工作约定
 
@@ -50,4 +50,4 @@
 - Router setup：`internal/api/router.go`
 - 共享 API 响应工具：`internal/pkg/response/response.go`
 - 配置文件：`internal/config/`
-- 示例 HTTP 请求：`rest/index.http`
+- 示例 HTTP 请求：`rest/*.http`

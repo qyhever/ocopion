@@ -1,0 +1,12 @@
+@hostname = localhost
+@port = 8301
+@host = {{hostname}}:{{port}}
+
+### 启动 Cloudflare IPv4 最低延迟优选（无请求体，后台生成 IP 文本及 Clash 配置，保存后按 upload_config_file_url/secret 上传）
+post http://{{host}}/api/cloudflare/fast-ip HTTP/1.1
+
+### 查询最近一次优选任务（idle/running/succeeded/failed）
+get http://{{host}}/api/cloudflare/fast-ip HTTP/1.1
+
+### 下载优选生成的 Clash 配置（任务 succeeded 后，默认输出路径）
+get http://{{host}}/public/clash-kdd.yaml HTTP/1.1

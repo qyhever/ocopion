@@ -1,0 +1,6 @@
+@hostname = localhost
+@port = 8301
+@host = {{hostname}}:{{port}}
+
+### GetVideoList
+get http://{{host}}/api/video HTTP/1.1
