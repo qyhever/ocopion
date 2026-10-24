@@ -9,6 +9,7 @@ import (
 	"ocopion/internal/module/app"
 	"ocopion/internal/module/cloudflare"
 	"ocopion/internal/module/post"
+	"ocopion/internal/module/user"
 	"ocopion/internal/module/video"
 	"ocopion/internal/pkg/db"
 
@@ -23,10 +24,11 @@ func SetupRouter() (*gin.Engine, error) {
 	postController := post.NewController(post.NewService(post.NewGormRepository(gormDB)))
 	appController := app.NewController()
 	videoController := video.NewVideoController(video.NewVideoService(video.NewVideoRepository(), config.GetConfig()))
-	return newRouter(postController, appController, videoController), nil
+	userController := user.NewController(user.NewService(user.NewGormRepository(gormDB)))
+	return newRouter(postController, userController, appController, videoController), nil
 }
 
-func newRouter(postController *post.Controller, appController *app.Controller, videoController *video.VideoController) *gin.Engine {
+func newRouter(postController *post.Controller, userController *user.Controller, appController *app.Controller, videoController *video.VideoController) *gin.Engine {
 	if config.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -47,6 +49,12 @@ func newRouter(postController *post.Controller, appController *app.Controller, v
 	api.GET("/post/:id", postController.Get)
 	api.GET("/post", postController.List)
 	api.POST("/post/delete", postController.Delete)
+
+	api.POST("/user", userController.Create)
+	api.PUT("/user/:id", userController.Update)
+	api.GET("/user/:id", userController.Get)
+	api.GET("/user", userController.List)
+	api.POST("/user/delete", userController.Delete)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"msg": "404"})
