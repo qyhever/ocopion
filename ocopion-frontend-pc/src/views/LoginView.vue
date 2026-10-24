@@ -3,7 +3,7 @@
     <div class="login-card">
       <div class="login-header">
         <h2>用户登录</h2>
-        <p>欢迎回来，请输入您的手机号和密码</p>
+        <p>欢迎回来，请输入您的邮箱和密码</p>
       </div>
 
       <t-form
@@ -14,16 +14,16 @@
         class="login-form"
         @submit="handleSubmit"
       >
-        <t-form-item name="mobile">
+        <t-form-item name="email">
           <t-input
-            v-model="formData.mobile"
-            placeholder="请输入手机号"
+            v-model="formData.email"
+            placeholder="请输入邮箱"
             clearable
             size="large"
-            :maxlength="11"
+            autocomplete="username"
           >
             <template #prefix-icon>
-              <t-icon name="mobile" />
+              <t-icon name="mail" />
             </template>
           </t-input>
         </t-form-item>
@@ -32,6 +32,7 @@
           <t-input
             v-model="formData.password"
             type="password"
+            autocomplete="current-password"
             placeholder="请输入密码"
             clearable
             size="large"
@@ -54,49 +55,48 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { MessagePlugin, type FormRule } from 'tdesign-vue-next'
+import { getLoginRedirect } from '@/router'
 import { useUserStore } from '@/stores/user'
 import type { FormProps } from 'tdesign-vue-next'
 import { loadScript, removeScript } from '@/utils'
 
 const canvasURL = import.meta.env.BASE_URL + 'assets/js/canvas-nest.js?v=' + LOCAL_BUILD_HASH
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const formRef = ref()
 const loading = ref(false)
 
 // 表单数据
 const formData = reactive({
-  mobile: '',
+  email: '',
   password: '',
 })
 
 // 表单验证规则
 const rules: Record<string, FormRule[]> = {
-  mobile: [
-    { required: true, message: '请输入手机号', type: 'error' as const },
+  email: [
+    { required: true, message: '请输入邮箱', type: 'error' as const },
     {
-      pattern: /^1[3-9]\d{9}$/,
-      message: '请输入正确的手机号格式',
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: '请输入正确的邮箱格式',
       type: 'error' as const,
     },
   ],
-  password: [
-    { required: true, message: '请输入密码', type: 'error' as const },
-    { min: 6, message: '密码长度至少6位', type: 'error' as const },
-  ],
+  password: [{ required: true, message: '请输入密码', type: 'error' as const }],
 }
 
 // 登录处理
 const handleSubmit: FormProps['onSubmit'] = async ({ validateResult }) => {
-  if (validateResult === true) {
+  if (validateResult === true && !loading.value) {
     loading.value = true
     try {
-      await userStore.loginByMobile(formData.mobile, formData.password)
+      await userStore.loginByEmail(formData.email.trim(), formData.password)
 
       MessagePlugin.success('登录成功')
-      router.push('/home')
+      await router.replace(getLoginRedirect(route.query.redirect))
     } catch (error) {
       console.error('登录失败:', error)
       // 错误信息已经在request.ts中处理了，这里不需要再次显示
@@ -105,13 +105,6 @@ const handleSubmit: FormProps['onSubmit'] = async ({ validateResult }) => {
     }
   }
 }
-
-// 清空表单
-// const resetForm = () => {
-//   formData.mobile = ''
-//   formData.password = ''
-//   formRef.value?.clearValidate()
-// }
 
 onMounted(() => {
   loadScript(canvasURL)

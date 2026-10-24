@@ -25,7 +25,7 @@ const basicRoutes = [
     component: () => import('../views/attach/SimpleUploadView.vue'),
     meta: {
       title: '常规上传',
-    }
+    },
   },
   {
     path: '/attach/chunk-upload',
@@ -33,7 +33,7 @@ const basicRoutes = [
     component: () => import('../views/attach/ChunkUploadView.vue'),
     meta: {
       title: '分片上传',
-    }
+    },
   },
   {
     path: '/mail/send',
@@ -41,7 +41,7 @@ const basicRoutes = [
     component: () => import('../views/mail/SendMail.vue'),
     meta: {
       title: '发送邮件',
-    }
+    },
   },
   {
     path: '/notification/tg',
@@ -93,25 +93,46 @@ const router = createRouter({
   ],
 })
 
+// 仅允许已注册的站内页面，避免外部地址、登录页和兜底 404。
+export function getLoginRedirect(value: unknown): string {
+  if (typeof value !== 'string' || !value.startsWith('/') || /^\/\/|[\\\s]/.test(value)) {
+    return HOME_PATH
+  }
+  const target = router.resolve(value)
+  if (
+    !target.matched.length ||
+    target.matched.some(
+      (record) =>
+        [LOGIN_PATH, '/notfound'].includes(record.path) || record.path.includes(':pathMatch'),
+    )
+  ) {
+    return HOME_PATH
+  }
+  return target.fullPath
+}
+
 router.beforeEach(async (to) => {
   const userStore = useUserStore()
-  const hasToken = Boolean(userStore.accessToken)
-  const isLoginPage = to.path === LOGIN_PATH
-
-  if (isLoginPage) {
-    return hasToken ? HOME_PATH : true
+  const isLoginPage = to.name === 'signin' || to.path === LOGIN_PATH
+  const loginTarget = {
+    path: LOGIN_PATH,
+    query: to.fullPath === HOME_PATH ? undefined : { redirect: to.fullPath },
   }
 
-  if (hasToken && !userStore.userInfo) {
-    await userStore.fetchUserInfo()
+  if (!userStore.accessToken) return isLoginPage ? true : loginTarget
+
+  if (!userStore.userInfo) {
+    try {
+      await userStore.fetchUserInfo()
+    } catch {
+      // 请求层在认证失败时清理会话；网络异常保留 Token 并中止导航。
+      if (!userStore.accessToken) return isLoginPage ? true : loginTarget
+      return false
+    }
   }
 
-  return hasToken
-    ? true
-    : {
-        path: LOGIN_PATH,
-        query: to.fullPath === HOME_PATH ? undefined : { redirect: to.fullPath },
-      }
+  if (!userStore.accessToken) return isLoginPage ? true : loginTarget
+  return isLoginPage ? getLoginRedirect(to.query.redirect) : true
 })
 
 export const getActive = (maxLevel = 3): string => {

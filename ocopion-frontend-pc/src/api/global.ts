@@ -1,7 +1,7 @@
 import { post } from '@/utils/request'
 
 export interface LoginRequest {
-  username: string
+  email: string
   password: string
 }
 

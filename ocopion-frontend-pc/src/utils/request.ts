@@ -5,29 +5,12 @@ import router from '@/router'
 import { request as http } from './fetch'
 import type { RequestOptions } from './fetch'
 
-const defaultOptions = {
-  baseURL: '/ocopion/api',
-}
-const SUCCESS_CODE = 1000
+const defaultOptions = { baseURL: '/ocopion/api' }
+const SUCCESS_CODE = 200
+let refreshTask: { session: number; promise: Promise<string> } | null = null
+let expiredSession: number | null = null
 
-// Token 刷新状态管理
-let refreshPromise: Promise<string> | null = null
-
-/**
- * 获取或创建刷新 token 的 Promise
- * 确保多个并发请求只触发一次 token 刷新
- */
-function getRefreshTokenPromise(): Promise<string> {
-  if (!refreshPromise) {
-    const userStore = useUserStore()
-    refreshPromise = userStore.refreshAccessToken().finally(() => {
-      refreshPromise = null
-    })
-  }
-  return refreshPromise
-}
-
-const codeMessage: Record<string, string> = {
+const codeMessage: Record<number, string> = {
   400: '请求错误',
   401: '登录状态失效，请重新登录',
   403: '禁止访问',
@@ -38,127 +21,97 @@ const codeMessage: Record<string, string> = {
   504: '网关超时',
 }
 
-function handleRequestHeader(configHeaders?: RequestOptions['headers']) {
-  const headers = {
-    ...(configHeaders || {}),
-  }
+interface RequestError extends Error {
+  response?: { status: number }
+  data?: { code: number; message: string }
+}
+
+function expireSession(session: number) {
   const userStore = useUserStore()
-  const token = userStore.accessToken
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-  return headers
-}
-
-function handleRequestParams(configParams?: RequestOptions['params']) {
-  const params = {
-    ...(configParams || {}),
-    t: new Date().getTime(), // 避免缓存
-  }
-  return params
-}
-
-function requestStart(config: RequestOptions) {
-  const headers = handleRequestHeader(config.headers)
-  const params = handleRequestParams(config.params)
-  return {
-    ...config,
-    headers,
-    params,
+  if (expiredSession === session || userStore.sessionVersion !== session) return
+  expiredSession = session
+  userStore.logout()
+  MessagePlugin.error('登录已过期，请重新登录')
+  const route = router.currentRoute.value
+  if (route.path !== '/signin') {
+    void router.replace({ path: '/signin', query: { redirect: route.fullPath } })
   }
 }
 
-interface IRequestThenEndParam<T = any> {
-  response: T
-}
-
-function requestThenEnd(param: IRequestThenEndParam) {
-  const { response: responseData } = param
-  // console.log('responseData: ', responseData)
-  // success code
-  if (responseData.code === SUCCESS_CODE) {
-    return responseData.data
-  }
-  MessagePlugin.closeAll()
-  MessagePlugin.warning(responseData.message || '操作失败')
-  return Promise.reject(responseData)
-}
-
-interface IRequestCatchEndParam {
-  error: {
-    response: Response
-  }
-}
-
-async function requestCatchEnd(
-  param: IRequestCatchEndParam,
-  originalOptions?: RequestOptions,
-): Promise<any> {
-  console.log('requestCatchEnd param', param)
-  const { error } = param
-
-  if (error.response?.status) {
-    const status = error.response.status
-
-    // 401 错误：尝试刷新 token 并重试
-    if (status === 401 && originalOptions) {
-      // 判断是否是刷新 token 接口本身失败
-      if (originalOptions.url?.includes('/auth/refresh')) {
-        MessagePlugin.closeAll()
-        MessagePlugin.error('登录已过期，请重新登录')
-        const userStore = useUserStore()
-        userStore.logout()
-        router.replace('/signin')
-        return Promise.reject(new Error('Refresh token failed'))
-      }
-
-      try {
-        // 等待 token 刷新完成（如果正在刷新，会复用同一个 Promise）
-        await getRefreshTokenPromise()
-
-        // Token 刷新成功，重试原请求
-        console.log('Token refreshed, retrying request:', originalOptions.url)
-        return request(originalOptions)
-      } catch (refreshError) {
-        // Token 刷新失败，跳转登录
-        console.error('Token refresh failed:', refreshError)
-        MessagePlugin.closeAll()
-        MessagePlugin.error('登录已过期，请重新登录')
-        const userStore = useUserStore()
-        userStore.logout()
-        router.replace('/signin')
-        return Promise.reject(refreshError)
-      }
+function refreshToken(session: number) {
+  if (!refreshTask || refreshTask.session !== session) {
+    const task = {
+      session,
+      promise: useUserStore()
+        .refreshAccessToken()
+        .finally(() => {
+          if (refreshTask === task) refreshTask = null
+        }),
     }
-
-    // 其他错误码的处理
-    const msg = codeMessage[status]
-    MessagePlugin.closeAll()
-    MessagePlugin.error(msg || '操作失败')
+    refreshTask = task
   }
-
-  return Promise.reject(new Error('Request failed'))
+  return refreshTask.promise
 }
 
 export async function request<T = any>(opts: RequestOptions): Promise<T> {
-  const options = {
-    ...defaultOptions,
-    ...opts,
+  const options = { ...defaultOptions, ...opts }
+  const isAuthRequest = ['/auth/login', '/auth/refresh'].includes(options.url)
+  const isRefreshRequest = options.url === '/auth/refresh'
+  const userStore = useUserStore()
+  const session = userStore.sessionVersion
+
+  async function send(retried = false): Promise<T> {
+    const token = userStore.accessToken
+    let response: IApiResponse<T>
+    try {
+      response = await http<IApiResponse<T>>({
+        ...options,
+        headers: {
+          ...options.headers,
+          ...(!isAuthRequest && token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        params: { ...options.params, t: Date.now() },
+      })
+    } catch (cause) {
+      const error = cause as RequestError
+      if (!isAuthRequest && error.response?.status === 401) {
+        // 旧会话的请求不能清理或刷新新会话。
+        if (userStore.sessionVersion !== session) throw error
+        if (retried) {
+          expireSession(session)
+          throw error
+        }
+        try {
+          // 较晚返回的旧 Token 401 复用已经刷新的 Token。
+          if (token === userStore.accessToken) await refreshToken(session)
+        } catch (refreshError) {
+          expireSession(session)
+          throw refreshError
+        }
+        if (userStore.sessionVersion !== session) throw error
+        return send(true)
+      }
+      // 刷新失败由原始受保护请求统一处理，避免并发重复提示。
+      if (!isRefreshRequest) {
+        MessagePlugin.error(
+          error.data?.message ||
+            (error.response ? codeMessage[error.response.status] : error.message) ||
+            '网络异常，请稍后重试',
+        )
+      }
+      throw cause
+    }
+
+    if (response.code !== SUCCESS_CODE) {
+      const error: RequestError = new Error(response.message || '操作失败')
+      error.data = response
+      if (!isRefreshRequest) MessagePlugin.warning(error.message)
+      throw error
+    }
+    return response.data
   }
-  try {
-    const config = requestStart(options)
-    const response = await http<T>(config)
-    return requestThenEnd({
-      response,
-    })
-  } catch (error: unknown) {
-    return requestCatchEnd(
-      {
-        error: error as { response: Response },
-      },
-      options, // 传递原始请求配置，用于重试
-    )
-  }
+
+  return send()
 }
 
 export async function get<T = any>(

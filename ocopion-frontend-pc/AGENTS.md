@@ -53,7 +53,7 @@ pnpm format
 
 - 前端端口：`5175`
 - API 代理前缀：`/ocopion/api`
-- 代理目标：`http://localhost:6300`
+- 代理目标：`http://localhost:8301`
 - 代理 rewrite：`/ocopion/api/...` 会转发为后端 `/api/...`
 
 业务请求默认 `baseURL` 在 `src/utils/request.ts` 中配置为：

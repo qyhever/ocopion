@@ -111,7 +111,7 @@ const onChangeCollapsed = () => {
 const handleLogout = () => {
   userStore.logout()
   MessagePlugin.success('已退出登录')
-  router.push('/login')
+  void router.replace('/signin')
 }
 </script>
 
