@@ -27,3 +27,19 @@ func (c *Controller) Start(ctx *gin.Context) { response.Success(ctx, c.service.S
 // @Success 200 {object} response.Response{data=Task}
 // @Router /cloudflare/fast-ip [get]
 func (c *Controller) Get(ctx *gin.Context) { response.Success(ctx, c.service.Get()) }
+
+// SpeedTest godoc
+// @Summary 同步 Cloudflare IPv4 测速
+// @Description 无请求体；最长等待 10 分钟，返回平均延迟不超过 200ms 的 12 个去重 IPv4，不保存文件或更新后台任务。
+// @Tags cloudflare
+// @Produce json
+// @Success 200 {object} response.Response{data=SpeedTestResult}
+// @Router /cloudflare/speed-test [post]
+func (c *Controller) SpeedTest(ctx *gin.Context) {
+	result, err := c.service.SpeedTest(ctx.Request.Context())
+	if err != nil {
+		response.Fail(ctx, err.Error())
+		return
+	}
+	response.Success(ctx, result)
+}

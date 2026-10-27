@@ -76,6 +76,14 @@ func (b *limitedOutput) Write(p []byte) (int, error) {
 }
 
 func (r *FileRepository) Measure(ctx context.Context) ([]Candidate, error) {
+	return r.measure(ctx, []string{"-dd", "-p", strconv.Itoa(fastIPCount)})
+}
+
+func (r *FileRepository) MeasureSpeedTest(ctx context.Context) ([]Candidate, error) {
+	return r.measure(ctx, []string{"-tl", "200", "-p", strconv.Itoa(speedTestIPCount), "-dd"})
+}
+
+func (r *FileRepository) measure(ctx context.Context, args []string) ([]Candidate, error) {
 	if r.pathError != nil {
 		return nil, fmt.Errorf("解析路径失败: %w", r.pathError)
 	}
@@ -103,7 +111,7 @@ func (r *FileRepository) Measure(ctx context.Context) ([]Candidate, error) {
 	}
 	defer os.RemoveAll(tempDir)
 	csvPath := filepath.Join(tempDir, "result.csv")
-	args := []string{"-dd", "-p", strconv.Itoa(fastIPCount), "-f", input, "-o", csvPath}
+	args = append(args, "-f", input, "-o", csvPath)
 	if r.url != "" {
 		args = append(args, "-url", r.url)
 	}

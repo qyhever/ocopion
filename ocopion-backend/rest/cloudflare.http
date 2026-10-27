@@ -10,3 +10,7 @@ get http://{{host}}/api/cloudflare/fast-ip HTTP/1.1
 
 ### 下载优选生成的 Clash 配置（任务 succeeded 后，默认输出路径）
 get http://{{host}}/public/clash-kdd.yaml HTTP/1.1
+
+### 同步测速（无请求体，最长等待 10 分钟；客户端/代理超时建议至少 610 秒）
+# 成功 data.ips 严格包含 12 个平均延迟 <= 200ms 的 IPv4；失败 code=-1，message 说明原因。
+post http://{{host}}/api/cloudflare/speed-test HTTP/1.1

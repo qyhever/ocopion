@@ -44,6 +44,7 @@ func newRouter(postController *post.Controller, userController *user.Controller,
 	cfController := cloudflare.NewController(cloudflare.NewService(cloudflare.NewRepository(config.GetConfig())))
 	api.POST("/cloudflare/fast-ip", cfController.Start)
 	api.GET("/cloudflare/fast-ip", cfController.Get)
+	api.POST("/cloudflare/speed-test", cfController.SpeedTest)
 
 	api.GET("/meta", appController.GetMeta)
 	api.GET("/video", videoController.GetVideoList)

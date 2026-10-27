@@ -1,5 +1,12 @@
 basePath: /api
 definitions:
+  cloudflare.SpeedTestResult:
+    properties:
+      ips:
+        items:
+          type: string
+        type: array
+    type: object
   cloudflare.Task:
     properties:
       error:
@@ -70,6 +77,24 @@ paths:
                   $ref: '#/definitions/cloudflare.Task'
               type: object
       summary: 启动 Cloudflare IPv4 最低延迟优选
+      tags:
+      - cloudflare
+  /cloudflare/speed-test:
+    post:
+      description: 无请求体；最长等待 10 分钟，返回平均延迟不超过 200ms 的 12 个去重 IPv4，不保存文件或更新后台任务。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cloudflare.SpeedTestResult'
+              type: object
+      summary: 同步 Cloudflare IPv4 测速
       tags:
       - cloudflare
   /meta:

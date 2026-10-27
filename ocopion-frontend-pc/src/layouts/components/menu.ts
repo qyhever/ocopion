@@ -8,6 +8,11 @@ export interface IMenuItem {
 
 export const menuList: IMenuItem[] = [
   {
+    title: 'Cloudflare 优选',
+    path: '/cloudflare/speed-test',
+    icon: 'smile',
+  },
+  {
     title: '首页',
     path: '/home',
     icon: 'smile',

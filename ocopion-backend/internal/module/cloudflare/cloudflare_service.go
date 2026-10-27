@@ -21,6 +21,30 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo, timeout: 10 * time.Minute, task: Task{Status: "idle", IPs: []string{}}}
 }
 
+// SpeedTest 同步测速，只返回结果，不更新后台任务及其输出文件。
+func (s *Service) SpeedTest(ctx context.Context) (SpeedTestResult, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.timeout)
+	defer cancel()
+	candidates, err := s.repo.MeasureSpeedTest(ctx)
+	if err != nil {
+		return SpeedTestResult{}, err
+	}
+	filtered := make([]Candidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		if candidate.Delay <= 200 {
+			filtered = append(filtered, candidate)
+		}
+	}
+	ips, err := selectIPCount(filtered, speedTestIPCount)
+	if err != nil {
+		return SpeedTestResult{}, err
+	}
+	if err := ctx.Err(); err != nil {
+		return SpeedTestResult{}, fmt.Errorf("cfst 测速超时或取消: %w", err)
+	}
+	return SpeedTestResult{IPs: ips}, nil
+}
+
 func (s *Service) Get() Task {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -103,6 +127,10 @@ func (s *Service) run() {
 }
 
 func selectIPs(candidates []Candidate) ([]string, error) {
+	return selectIPCount(candidates, fastIPCount)
+}
+
+func selectIPCount(candidates []Candidate, count int) ([]string, error) {
 	sort.Slice(candidates, func(i, j int) bool {
 		a, b := candidates[i], candidates[j]
 		if a.Delay != b.Delay {
@@ -113,7 +141,7 @@ func selectIPs(candidates []Candidate) ([]string, error) {
 		}
 		return a.IP.Less(b.IP)
 	})
-	ips := make([]string, 0, fastIPCount)
+	ips := make([]string, 0, count)
 	seen := make(map[string]bool)
 	for _, candidate := range candidates {
 		ip := candidate.IP.String()
@@ -122,9 +150,9 @@ func selectIPs(candidates []Candidate) ([]string, error) {
 		}
 		seen[ip] = true
 		ips = append(ips, ip)
-		if len(ips) == fastIPCount {
+		if len(ips) == count {
 			return ips, nil
 		}
 	}
-	return nil, fmt.Errorf("有效 IPv4 不足 %d 个（实际 %d 个）", fastIPCount, len(ips))
+	return nil, fmt.Errorf("有效 IPv4 不足 %d 个（实际 %d 个）", count, len(ips))
 }

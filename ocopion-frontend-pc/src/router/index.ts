@@ -15,6 +15,12 @@ declare module 'vue-router' {
 
 const basicRoutes = [
   {
+    path: '/cloudflare/speed-test',
+    name: 'cloudflare-speed-test',
+    component: () => import('../views/cloudflare/SpeedTestView.vue'),
+    meta: { title: 'Cloudflare 优选' },
+  },
+  {
     path: HOME_PATH,
     name: 'home',
     component: () => import('../views/HomeView.vue'),

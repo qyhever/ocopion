@@ -92,6 +92,24 @@ export OCOPION_UPLOAD_CONFIG_FILE_SECRET="<实际密钥>"
 
 接口定义见 `docs/swagger.yaml`，请求示例见 `rest/*.http`。
 
+## 同步 Cloudflare IP 测速
+
+`POST /api/cloudflare/speed-test` 无请求体，沿用 Cloudflare 接口的公开访问方式。部署时需配置 `cfst_bin_path`、赋予程序执行权限，并将 `ip.txt` 放在程序同目录；服务账户须能读取该文件、执行程序和写入系统临时目录。
+
+```sh
+curl --max-time 610 -X POST http://localhost:8301/api/cloudflare/speed-test
+```
+
+接口同步等待测速完成，最长运行 10 分钟；请求取消会终止测速。前端超时为 610 秒，部署时应将反向代理的请求等待时间设为至少 610 秒。程序工作目录为其所在目录，使用参数：
+
+```text
+-tl 200 -p 12 -dd -f <cfst目录>/ip.txt -o <请求独立临时CSV>
+```
+
+配置了 `cfst_url` 时同样追加 `-url`。`-p` 仅限制终端展示数量，后端从 CSV 校验 IPv4、响应数、延迟及丢包率，过滤平均延迟超过 200ms 的结果，按延迟、丢包率及 IP 数值升序排序，去重后严格取 12 个。成功返回统一封装 `{"code":200,"message":"操作成功","data":{"ips":["…"]}}`，其中 `ips` 包含 12 个 IPv4 字符串。配置缺失、程序失败、超时、CSV 异常或有效 IP 不足时返回 `code=-1`，`message` 说明原因；不足时包含实际数量。
+
+每个请求使用独立临时 CSV，结束后自动清理。接口只返回结果，不保存 IP 文本、不生成或上传 Clash 配置，也不修改原 16 个 IP 后台任务状态。
+
 ## 验证
 
 在后端目录执行：

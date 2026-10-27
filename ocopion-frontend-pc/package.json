@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "build-only": "vite build --mode prod",
     "type-check": "vue-tsc --build",
+    "test:cloudflare": "node --test tests/cloudflare.test.mjs",
     "test:auth": "node --test tests/auth.test.mjs",
     "lint": "run-s \"lint:*\"",
     "lint:oxlint": "oxlint . --fix",

@@ -6,6 +6,11 @@ import (
 )
 
 const fastIPCount = 16
+const speedTestIPCount = 12
+
+type SpeedTestResult struct {
+	IPs []string `json:"ips"`
+}
 
 // Task 是当前实例最近一次测速任务的快照。
 type Task struct {

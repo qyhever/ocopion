@@ -71,6 +71,38 @@
                 }
             }
         },
+        "/cloudflare/speed-test": {
+            "post": {
+                "description": "无请求体；最长等待 10 分钟，返回平均延迟不超过 200ms 的 12 个去重 IPv4，不保存文件或更新后台任务。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cloudflare"
+                ],
+                "summary": "同步 Cloudflare IPv4 测速",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cloudflare.SpeedTestResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/meta": {
             "get": {
                 "description": "返回 public/meta.json 中的动态 JSON 内容；文件缺失时返回 deployTime=unknown。",
@@ -129,6 +161,17 @@
         }
     },
     "definitions": {
+        "cloudflare.SpeedTestResult": {
+            "type": "object",
+            "properties": {
+                "ips": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "cloudflare.Task": {
             "type": "object",
             "properties": {
