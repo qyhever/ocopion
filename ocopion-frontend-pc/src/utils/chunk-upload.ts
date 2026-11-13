@@ -69,6 +69,13 @@ class ChunkUploader {
     try {
       this.isStop = false
       this.file = file
+      if (
+        file.size <= 0 ||
+        file.size > 10 * 1024 ** 3 ||
+        !file.name.toLowerCase().endsWith('.mp4')
+      ) {
+        throw new Error('请选择非空 MP4 文件，最大 10GiB')
+      }
 
       // 1. 计算全文件 MD5
       this.fileMd5 = await this.computeFileMd5(file)
@@ -82,6 +89,7 @@ class ChunkUploader {
         fileMd5: this.fileMd5,
         fileName: this.file.name,
         fileSize: this.file.size,
+        chunkSize: this.chunkSize,
       })
 
       if (verifyRes.isExists) {
@@ -212,7 +220,7 @@ class ChunkUploader {
       } catch (error) {
         times++
 
-        if (times > this.retryCount) {
+        if (times > this.retryCount || this.isStop) {
           throw error
         }
       }
@@ -227,6 +235,8 @@ class ChunkUploader {
   private async runPool(tasks: ChunkItem[]): Promise<void> {
     let finished = 0
     let currentIndex = 0
+    let failed = false
+    let failure: unknown
 
     const totalAll = this.chunkList.length
 
@@ -235,7 +245,15 @@ class ChunkUploader {
         const task = tasks[currentIndex]
         currentIndex++
 
-        await this.uploadChunk(task!)
+        try {
+          await this.uploadChunk(task!)
+        } catch (error) {
+          if (!failed) failure = error
+          failed = true
+          this.isStop = true
+          return
+        }
+        if (this.isStop) return
 
         finished++
 
@@ -255,6 +273,7 @@ class ChunkUploader {
     )
 
     await Promise.all(workers)
+    if (failed) throw failure
   }
 
   /**

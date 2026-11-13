@@ -12,6 +12,7 @@ import (
 
 // Config 应用配置结构体
 type Config struct {
+	Attach                 AttachConfig   `mapstructure:"attach"`
 	UploadConfigFileURL    string         `mapstructure:"upload_config_file_url"`
 	UploadConfigFileSecret string         `mapstructure:"upload_config_file_secret"`
 	ClashTemplatePath      string         `mapstructure:"clash_template_path"`
@@ -38,6 +39,16 @@ type ServerConfig struct {
 type FileConfig struct {
 	UploadViewBaseURL string `mapstructure:"upload_view_base_url"`
 	UploadDirPath     string `mapstructure:"upload_dir_path"`
+}
+
+// AttachConfig 独立配置普通附件、成品和分片存储。
+type AttachConfig struct {
+	ViewAttachBaseURL    string `mapstructure:"view_attach_base_url"`
+	UploadDirPath        string `mapstructure:"upload_dir_path"`
+	ViewLargeFileBaseURL string `mapstructure:"view_large_file_base_url"`
+	UploadLargeFilePath  string `mapstructure:"upload_large_file_path"`
+	ChunkDirPath         string `mapstructure:"chunk_dir_path"`
+	ChunkDirSalt         string `mapstructure:"chunk_dir_salt"`
 }
 
 // LoggerConfig 日志配置
@@ -154,6 +165,9 @@ func addConfigPaths(loader *viper.Viper, workDir string) {
 }
 
 func bindEnvVars(loader *viper.Viper) {
+	for _, key := range []string{"view_attach_base_url", "upload_dir_path", "view_large_file_base_url", "upload_large_file_path", "chunk_dir_path", "chunk_dir_salt"} {
+		loader.BindEnv("attach."+key, "OCOPION_ATTACH_"+strings.ToUpper(key))
+	}
 	loader.SetEnvPrefix("OCOPION")
 	loader.AutomaticEnv()
 	loader.SetDefault("output_fast_ip_path", "./fast-ip.txt")

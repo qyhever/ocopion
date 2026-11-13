@@ -16,6 +16,7 @@
     "test:cloudflare": "node --test tests/cloudflare.test.mjs",
     "test:auth": "node --test tests/auth.test.mjs",
     "test:telegram": "node --test tests/telegram.test.mjs",
+    "test:attach": "node --test tests/attach.test.mjs",
     "lint": "run-s \"lint:*\"",
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",

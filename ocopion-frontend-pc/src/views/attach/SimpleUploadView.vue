@@ -10,7 +10,7 @@
         :max="1"
         :multiple="false"
         :request-method="uploadFile"
-        tips="仅支持单文件上传"
+        tips="支持任意格式，单文件最大 100MiB"
         placeholder="请选择要上传的文件"
       />
 
@@ -41,24 +41,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { post } from '@/utils/request'
+import { uploadAttach } from '@/api/attach'
+import type { AttachUploadResponse } from '@/api/attach'
 import type { RequestMethodResponse, UploadFile } from 'tdesign-vue-next'
-import FakeProgress from 'fake-progress'
-
-const fp = ref<FakeProgress | null>(null)
-
-const progressValue = computed(() => {
-  if (!fp.value) return 0
-  return parseInt(String(fp.value.progress * 100), 10)
-})
-
-interface AttachUploadResponse {
-  fileName: string
-  originName: string
-  url: string
-}
+const progressValue = ref(0)
 
 const files = ref<UploadFile[]>([])
 const uploadResult = ref<AttachUploadResponse | null>(null)
@@ -72,6 +60,7 @@ async function uploadFile(uploadFiles: UploadFile | UploadFile[]): Promise<Reque
   const rawFile = currentFile?.raw
 
   uploadResult.value = null
+  progressValue.value = 0
 
   if (!rawFile) {
     const error = '未获取到待上传文件'
@@ -83,19 +72,20 @@ async function uploadFile(uploadFiles: UploadFile | UploadFile[]): Promise<Reque
     }
   }
 
-  const formData = new FormData()
-  formData.append('file', rawFile)
+  if (rawFile.size > 100 * 1024 * 1024) {
+    const error = '上传文件不能超过 100MiB'
+    MessagePlugin.error(error)
+    return { status: 'fail', error, response: {} }
+  }
 
   try {
-    fp.value?.start()
-    const response = await post<AttachUploadResponse>('/attach/upload', formData, {
-      onUploadProgress(event) {
-        console.log('event: ', event)
-        if (!event.lengthComputable) return
-        currentFile.percent = Math.round((event.loaded / event.total) * 100)
-      },
+    const response = await uploadAttach(rawFile, (event) => {
+      if (!event.lengthComputable) return
+      progressValue.value = Math.min(99, Math.round((event.loaded / event.total) * 100))
+      currentFile.percent = progressValue.value
     })
-    fp.value?.end()
+    progressValue.value = 100
+    currentFile.percent = 100
     uploadResult.value = response
 
     return {
@@ -117,13 +107,6 @@ async function uploadFile(uploadFiles: UploadFile | UploadFile[]): Promise<Reque
     }
   }
 }
-
-onMounted(() => {
-  fp.value = new FakeProgress({
-    timeConstant: 20000, // 总模拟时长 ms
-    autoStart: true, // 实例化自动开始
-  })
-})
 </script>
 
 <style scoped>

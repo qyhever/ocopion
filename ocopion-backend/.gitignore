@@ -54,3 +54,8 @@ vendor/
 *.prod.yaml
 *.local.yml
 internal/config/prod.yml
+
+# 附件运行时产物
+/public/uploads/
+/public/larges/
+/public/chunks/

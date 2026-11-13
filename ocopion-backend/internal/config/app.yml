@@ -40,6 +40,14 @@ postal:
   from_pass: ""  # 发件邮箱密码
   from_name: ""  # 发件人显示名称
 
+attach:
+  view_attach_base_url: "http://localhost:8301/public/uploads" # 上传文件访问地址前缀
+  upload_dir_path: "./public/uploads" # 上传文件存放目录
+  view_large_file_base_url: "http://localhost:8301/public/larges" # 大文件访问地址前缀
+  upload_large_file_path: "./public/larges" # 大文件存放目录
+  chunk_dir_path: "./public/chunks" # 分片文件存放目录
+  chunk_dir_salt: "ocopion_chunk_upload_salt"
+
 tg:
   mirror_base_url: "" # TG机器人镜像地址
   bot_token: "" # TG机器人Token

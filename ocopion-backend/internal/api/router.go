@@ -8,6 +8,7 @@ import (
 	"ocopion/internal/config"
 	"ocopion/internal/middleware"
 	"ocopion/internal/module/app"
+	"ocopion/internal/module/attach"
 	"ocopion/internal/module/auth"
 	"ocopion/internal/module/cloudflare"
 	"ocopion/internal/module/mail"
@@ -47,6 +48,7 @@ func newRouter(postController *post.Controller, userController *user.Controller,
 	fmt.Printf("Go Version %v\n", runtime.Version())
 
 	api := r.Group("/api")
+	attachController := attach.NewController(attach.NewService(attach.NewFileRepository(), config.GetConfig().Attach))
 	cfController := cloudflare.NewController(cloudflare.NewService(cloudflare.NewRepository(config.GetConfig())))
 	api.POST("/cloudflare/fast-ip", cfController.Start)
 	api.GET("/cloudflare/fast-ip", cfController.Get)
@@ -80,6 +82,15 @@ func newRouter(postController *post.Controller, userController *user.Controller,
 		userGroup.GET("", userController.List)
 		userGroup.POST("/delete", userController.Delete)
 		userGroup.GET("/me", userController.Me)
+	}
+
+	attachuserGroup := api.Group("/attach")
+	attachuserGroup.Use(authenticate)
+	{
+		attachuserGroup.POST("/upload", attachController.Upload)
+		attachuserGroup.POST("/verify", attachController.Verify)
+		attachuserGroup.POST("/chunk", attachController.Chunk)
+		attachuserGroup.POST("/merge", attachController.Merge)
 	}
 
 	r.NoRoute(func(c *gin.Context) {

@@ -4,6 +4,7 @@ export interface UploadVerifyRequest {
   fileMd5: string
   fileName: string
   fileSize: number
+  chunkSize?: number
 }
 
 export interface UploadVerifyResponse {
@@ -39,7 +40,7 @@ export interface MergeChunksResponse {
  * @returns 预检结果
  */
 export function uploadVerify(params: UploadVerifyRequest) {
-  return post<UploadVerifyResponse>('/upload/verify', params)
+  return post<UploadVerifyResponse>('/attach/verify', params)
 }
 
 /**
@@ -55,7 +56,7 @@ export function uploadChunk(params: UploadChunkRequest) {
   fd.append('fileMd5', params.fileMd5)
   fd.append('chunkIndex', chunkIndex.toString())
   fd.append('fileName', params.fileName)
-  return post<void>(`/upload/chunk?chunkIndex=${chunkIndex}&chunkTotal=${chunkTotal}`, fd)
+  return post<void>(`/attach/chunk?chunkIndex=${chunkIndex}&chunkTotal=${chunkTotal}`, fd)
 }
 
 /**
@@ -64,5 +65,5 @@ export function uploadChunk(params: UploadChunkRequest) {
  * @returns 合并结果
  */
 export function mergeChunks(params: MergeChunksRequest) {
-  return post<MergeChunksResponse>('/upload/merge', params)
+  return post<MergeChunksResponse>('/attach/merge', params)
 }

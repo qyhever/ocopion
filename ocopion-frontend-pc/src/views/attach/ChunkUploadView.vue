@@ -235,11 +235,15 @@ const fileSizeText = computed(() => {
 })
 
 function checkFile(file: File) {
+  if (file.size === 0) {
+    MessagePlugin.warning('不能上传空文件')
+    return false
+  }
   if (file.size > 10 * 1024 * 1024 * 1024) {
     MessagePlugin.warning('上传文件不超过10G')
     return false
   }
-  if (file.name.replace(/.+\./, '') !== 'mp4') {
+  if (!file.name.toLowerCase().endsWith('.mp4')) {
     MessagePlugin.warning('上传文件仅支持MP4格式')
     return false
   }

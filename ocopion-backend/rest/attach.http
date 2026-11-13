@@ -1,0 +1,77 @@
+@baseUrl = http://localhost:8301/api
+@token = replace-with-access-token
+@uploadId = replace-with-verify-uploadId
+# 计算本地视频 MD5 后替换此值；演示按默认 5MiB 切片。
+@fileMd5 = replace-with-32-character-md5
+
+### 常规上传：任意格式，最大 100MiB
+POST {{baseUrl}}/attach/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=attach
+
+--attach
+Content-Disposition: form-data; name="file"; filename="example.txt"
+Content-Type: application/octet-stream
+
+< ./example.txt
+--attach--
+
+### 分片预检：非空 MP4（扩展名不区分大小写），最大 10GiB
+# chunkSize 可省略（默认 5MiB），最大 100MiB，分片总数最多 100000。
+# 必须传实际文件大小和实际切片大小。上传任务按用户、文件信息及切片大小隔离。
+POST {{baseUrl}}/attach/verify
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fileMd5": "{{fileMd5}}",
+  "fileName": "example.MP4",
+  "fileSize": 8388608,
+  "chunkSize": 5242880
+}
+
+### 第 0 片：query 与 form 中的索引必须一致；先将视频切为 5MiB、3MiB 两片
+POST {{baseUrl}}/attach/chunk?chunkIndex=0&chunkTotal=2
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=chunk
+
+--chunk
+Content-Disposition: form-data; name="uploadId"
+
+{{uploadId}}
+--chunk
+Content-Disposition: form-data; name="fileMd5"
+
+{{fileMd5}}
+--chunk
+Content-Disposition: form-data; name="fileName"
+
+example.MP4
+--chunk
+Content-Disposition: form-data; name="chunkIndex"
+
+0
+--chunk
+Content-Disposition: form-data; name="chunk"; filename="0.part"
+Content-Type: application/octet-stream
+
+< ./0.part
+--chunk--
+
+### 上传第 1 片后合并；缺片保留任务，MD5 错误清除分片供重传
+POST {{baseUrl}}/attach/merge
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "uploadId": "{{uploadId}}",
+  "fileMd5": "{{fileMd5}}",
+  "chunkLength": 2
+}
+
+# 四个接口均要求 access token，失败认证 HTTP 401；业务失败 HTTP 200/code=-1。
+# 成功 HTTP 200/code=200：upload 返回 {fileName,originName,url}；
+# verify 返回 {isExists,url,uploadId,uploadedChunks}（空分片为 []）；
+# chunk 无业务数据；merge 返回 {url,msg}。
+# 单实例、本地磁盘，任务记录持久化，成功清理分片并保留完成记录。
+# attach 六项配置均支持对应 OCOPION_ATTACH_* 环境变量；不使用 file 配置。
