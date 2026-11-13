@@ -13,6 +13,7 @@ import (
 	"ocopion/internal/module/auth"
 	"ocopion/internal/module/mail"
 	"ocopion/internal/module/post"
+	"ocopion/internal/module/telegram"
 	"ocopion/internal/module/user"
 	"ocopion/internal/module/video"
 	jwtpkg "ocopion/internal/pkg/jwt"
@@ -80,7 +81,7 @@ func TestRouterAuthentication(t *testing.T) {
 	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "test-secret"}, Auth: config.AuthConfig{Whitelist: []string{"/api/post", "GET:/api/post/:id"}}}
 	pr, ur := &postRepository{}, &userRepository{}
 	mr := &mailRepository{}
-	r := newRouter(post.NewController(post.NewService(pr)), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)))
+	r := newRouter(post.NewController(post.NewService(pr)), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)), telegram.NewController(telegram.NewService(&telegramRepository{})))
 	// This identity has no repository user lookup for post authorization.
 	access, refresh, err := jwtpkg.GenToken(999)
 	if err != nil {
@@ -197,7 +198,7 @@ func TestMailRouterAuthentication(t *testing.T) {
 	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "mail-test-secret"}}
 	mr := &mailRepository{}
 	ur := &userRepository{}
-	r := newRouter(post.NewController(post.NewService(&postRepository{})), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)))
+	r := newRouter(post.NewController(post.NewService(&postRepository{})), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)), telegram.NewController(telegram.NewService(&telegramRepository{})))
 	access, refresh, err := jwtpkg.GenToken(999)
 	if err != nil {
 		t.Fatal(err)

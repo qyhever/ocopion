@@ -8,7 +8,32 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestNewClientBaseURL(t *testing.T) {
+	for _, tc := range []struct{ base, want string }{
+		{"", defaultBaseURL},
+		{"https://mirror.example/tg", "https://mirror.example/tg"},
+		{"https://mirror.example/tg///", "https://mirror.example/tg"},
+	} {
+		client := NewClient("token", "chat", tc.base)
+		if client.baseURL != tc.want || client.httpClient.Timeout != 10*time.Second {
+			t.Fatalf("client=%+v", client)
+		}
+		calls := 0
+		client.httpClient.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			calls++
+			if req.URL.String() != tc.want+"/bottoken/sendMessage" {
+				t.Errorf("URL=%s", req.URL)
+			}
+			return nil, errors.New("offline")
+		})
+		if err := client.SendMessage(context.Background(), "hello"); err == nil || calls != 1 {
+			t.Fatalf("calls=%d error=%v", calls, err)
+		}
+	}
+}
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
@@ -44,8 +69,7 @@ func TestClientSendMessage(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test-token", "test-chat")
-	client.baseURL = server.URL
+	client := NewClient("test-token", "test-chat", server.URL)
 	client.httpClient = server.Client()
 
 	if err := client.SendMessage(context.Background(), "hello"); err != nil {
@@ -79,8 +103,7 @@ func TestClientSendMessageErrors(t *testing.T) {
 			}))
 			defer server.Close()
 
-			client := NewClient(tt.botToken, tt.chatID)
-			client.baseURL = server.URL
+			client := NewClient(tt.botToken, tt.chatID, server.URL)
 			client.httpClient = server.Client()
 
 			err := client.SendMessage(context.Background(), tt.text)
@@ -97,7 +120,7 @@ func TestClientSendMessageErrors(t *testing.T) {
 func TestClientSendMessageDoesNotExposeBotTokenInTransportError(t *testing.T) {
 	const botToken = "secret-bot-token"
 
-	client := NewClient(botToken, "test-chat")
+	client := NewClient(botToken, "test-chat", "")
 	client.httpClient = &http.Client{
 		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 			return nil, errors.New("request failed for " + req.URL.String())

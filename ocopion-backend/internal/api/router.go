@@ -12,9 +12,11 @@ import (
 	"ocopion/internal/module/cloudflare"
 	"ocopion/internal/module/mail"
 	"ocopion/internal/module/post"
+	"ocopion/internal/module/telegram"
 	"ocopion/internal/module/user"
 	"ocopion/internal/module/video"
 	"ocopion/internal/pkg/db"
+	telegramclient "ocopion/internal/pkg/telegram"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,10 +33,12 @@ func SetupRouter() (*gin.Engine, error) {
 	userController := user.NewController(user.NewService(userRepo))
 	authController := auth.NewAuthController(auth.NewAuthService(userRepo))
 	mailController := mail.NewController(mail.NewService(mail.NewPostalRepository()))
-	return newRouter(postController, userController, authController, appController, videoController, mailController), nil
+	tg := config.GetConfig().TG
+	telegramController := telegram.NewController(telegram.NewService(telegram.NewClientRepository(telegramclient.NewClient(tg.BotToken, tg.ChatID, tg.MirrorBaseURL))))
+	return newRouter(postController, userController, authController, appController, videoController, mailController, telegramController), nil
 }
 
-func newRouter(postController *post.Controller, userController *user.Controller, authController *auth.AuthController, appController *app.Controller, videoController *video.VideoController, mailController *mail.Controller) *gin.Engine {
+func newRouter(postController *post.Controller, userController *user.Controller, authController *auth.AuthController, appController *app.Controller, videoController *video.VideoController, mailController *mail.Controller, telegramController *telegram.Controller) *gin.Engine {
 	if config.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -55,6 +59,7 @@ func newRouter(postController *post.Controller, userController *user.Controller,
 	api.POST("/auth/refresh", authController.Refresh)
 	authenticate := middleware.JWTAuthMiddleware()
 	api.POST("/mail", authenticate, mailController.Send)
+	api.POST("/telegram", authenticate, telegramController.Send)
 
 	postGroup := api.Group("/post")
 	postGroup.Use(authenticate)

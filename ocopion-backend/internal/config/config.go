@@ -27,6 +27,7 @@ type Config struct {
 	JWT                    JWTConfig      `mapstructure:"jwt"`
 	Auth                   AuthConfig     `mapstructure:"auth"`
 	Postal                 PostalConfig   `mapstructure:"postal"`
+	TG                     TGConfig       `mapstructure:"tg"`
 }
 
 // ServerConfig 服务器配置
@@ -81,6 +82,13 @@ type PostalConfig struct {
 	FromEmail  string `mapstructure:"from_email"`
 	FromPass   string `mapstructure:"from_pass"`
 	FromName   string `mapstructure:"from_name"`
+}
+
+// Tg配置
+type TGConfig struct {
+	MirrorBaseURL string `mapstructure:"mirror_base_url"`
+	BotToken      string `mapstructure:"bot_token"`
+	ChatID        string `mapstructure:"chat_id"`
 }
 
 // GlobalConfig 全局配置实例
@@ -180,6 +188,9 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.BindEnv("jwt.secret", "OCOPION_JWT_SECRET")
 	loader.BindEnv("jwt.access_expires_in", "OCOPION_JWT_ACCESS_EXPIRES_IN")
 	loader.BindEnv("jwt.refresh_expires_in", "OCOPION_JWT_REFRESH_EXPIRES_IN")
+	loader.BindEnv("tg.bot_token", "OCOPION_TG_BOT_TOKEN")
+	loader.BindEnv("tg.chat_id", "OCOPION_TG_CHAT_ID")
+	loader.BindEnv("tg.mirror_base_url", "OCOPION_TG_MIRROR_BASE_URL")
 
 }
 

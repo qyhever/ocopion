@@ -34,11 +34,14 @@ type telegramResponse struct {
 	Description string `json:"description"`
 }
 
-func NewClient(botToken, chatID string) *Client {
+func NewClient(botToken, chatID, baseURL string) *Client {
+	if baseURL == "" {
+		baseURL = defaultBaseURL
+	}
 	return &Client{
 		botToken: botToken,
 		chatID:   chatID,
-		baseURL:  defaultBaseURL,
+		baseURL:  strings.TrimRight(baseURL, "/"),
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},

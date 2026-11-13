@@ -6,6 +6,37 @@ import (
 	"testing"
 )
 
+func TestTelegramEnvOverridesYAML(t *testing.T) {
+	for _, env := range []bool{false, true} {
+		t.Run(map[bool]string{false: "yaml", true: "env"}[env], func(t *testing.T) {
+			for _, key := range []string{"BOT_TOKEN", "CHAT_ID", "MIRROR_BASE_URL"} {
+				value := ""
+				if env {
+					value = "env-" + key
+				}
+				t.Setenv("OCOPION_TG_"+key, value)
+			}
+			loader := viper.New()
+			bindEnvVars(loader)
+			loader.SetConfigType("yaml")
+			if err := loader.ReadConfig(strings.NewReader("tg:\n  bot_token: yaml-token\n  chat_id: yaml-chat\n  mirror_base_url: https://yaml.example\n")); err != nil {
+				t.Fatal(err)
+			}
+			var cfg Config
+			if err := loader.Unmarshal(&cfg); err != nil {
+				t.Fatal(err)
+			}
+			want := TGConfig{BotToken: "yaml-token", ChatID: "yaml-chat", MirrorBaseURL: "https://yaml.example"}
+			if env {
+				want = TGConfig{BotToken: "env-BOT_TOKEN", ChatID: "env-CHAT_ID", MirrorBaseURL: "env-MIRROR_BASE_URL"}
+			}
+			if cfg.TG != want {
+				t.Fatalf("TG=%+v", cfg.TG)
+			}
+		})
+	}
+}
+
 func TestCloudflareEnvOverridesYAML(t *testing.T) {
 	t.Setenv("OCOPION_CFST_BIN_PATH", "./env-cfst")
 	t.Setenv("OCOPION_OUTPUT_FAST_IP_PATH", "./env-fast-ip.txt")

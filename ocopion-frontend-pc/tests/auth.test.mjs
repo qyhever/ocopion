@@ -50,6 +50,7 @@ export function createHarness(handler, initial = tokens) {
     AbortController,
     setTimeout,
     clearTimeout,
+    defineOptions: () => {},
     window: { location: { origin: 'http://localhost:5175' } },
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
@@ -63,12 +64,16 @@ export function createHarness(handler, initial = tokens) {
     },
   })
   const cache = new Map()
-  function load(filename) {
-    if (filename.endsWith('.vue')) return { default: {}, __esModule: true }
+  function load(filename, executeVue = false) {
+    if (filename.endsWith('.vue') && !executeVue) return { default: {}, __esModule: true }
     if (cache.has(filename)) return cache.get(filename).exports
     const module = { exports: {} }
     cache.set(filename, module)
-    const source = readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'")
+    let source = readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'")
+    if (executeVue) {
+      source = source.match(/<script setup lang="ts">([\s\S]*?)<\/script>/)[1]
+      source += '\nexport { formData, submitting, handleSubmit }'
+    }
     const { outputText } = ts.transpileModule(source, {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     })
@@ -103,7 +108,9 @@ export function createHarness(handler, initial = tokens) {
         let target = specifier.startsWith('@/')
           ? path.join(root, 'src', specifier.slice(2))
           : path.resolve(path.dirname(filename), specifier)
-        if (!path.extname(target)) target += target.endsWith('/router') ? '/index.ts' : '.ts'
+        if (!path.extname(target)) {
+          target = path.basename(target) === 'router' ? path.join(target, 'index.ts') : `${target}.ts`
+        }
         return load(target)
       }
       return nativeRequire(specifier)
@@ -126,6 +133,7 @@ export function createHarness(handler, initial = tokens) {
     navigations,
     guard: (path, query = {}) => guard({ path, fullPath: path, query }),
     router,
+    telegramForm: () => load(path.join(root, 'src/views/telegram/SendTelegram.vue'), true),
   }
 }
 

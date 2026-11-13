@@ -40,6 +40,11 @@ postal:
   from_pass: ""  # 发件邮箱密码
   from_name: ""  # 发件人显示名称
 
+tg:
+  mirror_base_url: "" # TG机器人镜像地址
+  bot_token: "" # TG机器人Token
+  chat_id: ""   # TG聊天ID
+
 # cfst 与 IPv4 网段文件 ip.txt 由部署方安装在同一目录
 cfst_bin_path: ""
 output_fast_ip_path: "./fast-ip.txt"
