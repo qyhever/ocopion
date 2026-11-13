@@ -1,0 +1,13 @@
+@host = localhost:8301
+@accessToken = replace-with-login-access-token
+
+### Send HTML mail (requires an access token)
+POST http://{{host}}/api/mail HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "to": "user@example.com",
+  "subject": "邮件主题",
+  "body": "<p>邮件正文</p>"
+}

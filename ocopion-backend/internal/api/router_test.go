@@ -11,6 +11,7 @@ import (
 	"ocopion/internal/config"
 	"ocopion/internal/module/app"
 	"ocopion/internal/module/auth"
+	"ocopion/internal/module/mail"
 	"ocopion/internal/module/post"
 	"ocopion/internal/module/user"
 	"ocopion/internal/module/video"
@@ -56,6 +57,13 @@ func (r *userRepository) List(context.Context, pagination.Params, string) ([]use
 
 type videoRepository struct{}
 
+type mailRepository struct{ calls int }
+
+func (r *mailRepository) Send(to, subject, body string) error {
+	r.calls++
+	return nil
+}
+
 func (videoRepository) GetVideoList() ([]video.VideoConfig, error) { return []video.VideoConfig{}, nil }
 
 func TestRouterAuthentication(t *testing.T) {
@@ -71,7 +79,8 @@ func TestRouterAuthentication(t *testing.T) {
 	t.Cleanup(func() { config.GlobalConfig = previous })
 	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "test-secret"}, Auth: config.AuthConfig{Whitelist: []string{"/api/post", "GET:/api/post/:id"}}}
 	pr, ur := &postRepository{}, &userRepository{}
-	r := newRouter(post.NewController(post.NewService(pr)), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())))
+	mr := &mailRepository{}
+	r := newRouter(post.NewController(post.NewService(pr)), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)))
 	// This identity has no repository user lookup for post authorization.
 	access, refresh, err := jwtpkg.GenToken(999)
 	if err != nil {
@@ -177,6 +186,41 @@ func TestRouterAuthentication(t *testing.T) {
 			if w.Code != 200 || result.Data.ID != 999 {
 				t.Fatal(w.Body.String())
 			}
+		}
+	}
+}
+
+func TestMailRouterAuthentication(t *testing.T) {
+	t.Setenv("OCOPION_ENV", "dev")
+	previous := config.GlobalConfig
+	t.Cleanup(func() { config.GlobalConfig = previous })
+	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "mail-test-secret"}}
+	mr := &mailRepository{}
+	ur := &userRepository{}
+	r := newRouter(post.NewController(post.NewService(&postRepository{})), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)))
+	access, refresh, err := jwtpkg.GenToken(999)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, token := range []string{"", "invalid-token", refresh, access} {
+		req := httptest.NewRequest("POST", "/api/mail", strings.NewReader(`{"to":"user@example.com","subject":"主题","body":"<p>正文</p>"}`))
+		req.Header.Set("Content-Type", "application/json")
+		if token != "" {
+			req.Header.Set("Authorization", "Bearer "+token)
+		}
+		w := httptest.NewRecorder()
+		before := mr.calls
+		r.ServeHTTP(w, req)
+		var result response.Response
+		if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+			t.Fatal(err)
+		}
+		if token == access {
+			if w.Code != 200 || result.Code != 200 || mr.calls != before+1 {
+				t.Fatalf("authorized mail: %s", w.Body.String())
+			}
+		} else if w.Code != 401 || result.Code != 1006 || mr.calls != before {
+			t.Fatalf("unprotected mail: %s", w.Body.String())
 		}
 	}
 }

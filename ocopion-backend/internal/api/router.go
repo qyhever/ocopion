@@ -10,6 +10,7 @@ import (
 	"ocopion/internal/module/app"
 	"ocopion/internal/module/auth"
 	"ocopion/internal/module/cloudflare"
+	"ocopion/internal/module/mail"
 	"ocopion/internal/module/post"
 	"ocopion/internal/module/user"
 	"ocopion/internal/module/video"
@@ -29,10 +30,11 @@ func SetupRouter() (*gin.Engine, error) {
 	userRepo := user.NewGormRepository(gormDB)
 	userController := user.NewController(user.NewService(userRepo))
 	authController := auth.NewAuthController(auth.NewAuthService(userRepo))
-	return newRouter(postController, userController, authController, appController, videoController), nil
+	mailController := mail.NewController(mail.NewService(mail.NewPostalRepository()))
+	return newRouter(postController, userController, authController, appController, videoController, mailController), nil
 }
 
-func newRouter(postController *post.Controller, userController *user.Controller, authController *auth.AuthController, appController *app.Controller, videoController *video.VideoController) *gin.Engine {
+func newRouter(postController *post.Controller, userController *user.Controller, authController *auth.AuthController, appController *app.Controller, videoController *video.VideoController, mailController *mail.Controller) *gin.Engine {
 	if config.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -52,6 +54,7 @@ func newRouter(postController *post.Controller, userController *user.Controller,
 	api.POST("/auth/login", authController.Login)
 	api.POST("/auth/refresh", authController.Refresh)
 	authenticate := middleware.JWTAuthMiddleware()
+	api.POST("/mail", authenticate, mailController.Send)
 
 	postGroup := api.Group("/post")
 	postGroup.Use(authenticate)

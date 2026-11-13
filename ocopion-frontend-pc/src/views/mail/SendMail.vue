@@ -72,7 +72,7 @@ defineOptions({
 })
 
 const initialFormData: SendMailForm = {
-  to: 'arlong@qyhever.cn',
+  to: 'max@qyhever.com',
   subject: 'hi',
   body: '光轮冰棍发起旋毛自来也双式之丸',
 }

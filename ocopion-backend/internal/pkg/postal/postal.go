@@ -1,11 +1,11 @@
 package postal
 
 import (
-	"ocopion/internal/config"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"net/smtp"
+	"ocopion/internal/config"
 	"strings"
 )
 
@@ -78,15 +78,17 @@ func sendMailSMTP(to, subject, body string) error {
 		return err
 	}
 	// 发送数据
+	return sendData(client, msg.String())
+}
+
+func sendData(client *smtp.Client, message string) error {
 	w, err := client.Data()
 	if err != nil {
 		return err
 	}
-	_, err = w.Write([]byte(msg.String()))
+	_, err = w.Write([]byte(message))
 	if err != nil {
 		return err
 	}
-	w.Close()
-
-	return nil
+	return w.Close()
 }
