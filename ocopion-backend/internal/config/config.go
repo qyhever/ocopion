@@ -43,6 +43,7 @@ type FileConfig struct {
 
 // AttachConfig 独立配置普通附件、成品和分片存储。
 type AttachConfig struct {
+	TxtVideoDirPath      string `mapstructure:"txt_video_dir_path"`
 	ViewAttachBaseURL    string `mapstructure:"view_attach_base_url"`
 	UploadDirPath        string `mapstructure:"upload_dir_path"`
 	ViewLargeFileBaseURL string `mapstructure:"view_large_file_base_url"`
@@ -165,7 +166,7 @@ func addConfigPaths(loader *viper.Viper, workDir string) {
 }
 
 func bindEnvVars(loader *viper.Viper) {
-	for _, key := range []string{"view_attach_base_url", "upload_dir_path", "view_large_file_base_url", "upload_large_file_path", "chunk_dir_path", "chunk_dir_salt"} {
+	for _, key := range []string{"view_attach_base_url", "upload_dir_path", "view_large_file_base_url", "upload_large_file_path", "chunk_dir_path", "chunk_dir_salt", "txt_video_dir_path"} {
 		loader.BindEnv("attach."+key, "OCOPION_ATTACH_"+strings.ToUpper(key))
 	}
 	loader.SetEnvPrefix("OCOPION")

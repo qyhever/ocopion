@@ -7,6 +7,7 @@ export interface IMenuItem {
 }
 
 export const menuList: IMenuItem[] = [
+  { title: '文案转视频', path: '/txt-video', icon: 'smile' },
   {
     title: 'Cloudflare 优选',
     path: '/cloudflare/speed-test',

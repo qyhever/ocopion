@@ -16,7 +16,7 @@ func TestAttachRoutesRequireLogin(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	r := newRouter(nil, nil, nil, nil, nil, nil, nil)
+	r := newTestRouter(t, nil, nil, nil, nil, nil, nil, nil)
 	for _, path := range []string{"upload", "verify", "chunk", "merge"} {
 		for _, auth := range []string{"", token} {
 			req := httptest.NewRequest("POST", "/api/attach/"+path, strings.NewReader("{}"))

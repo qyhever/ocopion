@@ -1,0 +1,35 @@
+@baseUrl = http://localhost:8301/api
+@token = REPLACE_WITH_ACCESS_TOKEN
+@taskId = REPLACE_WITH_TASK_ID
+@filename = REPLACE_WITH_UUID.mp4
+
+### 创建文案转视频任务：替换本地封面路径后发送。
+POST {{baseUrl}}/txt-video/tasks
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=TxtVideoBoundary
+
+--TxtVideoBoundary
+Content-Disposition: form-data; name="text"
+
+你好，欢迎使用文案转视频。
+--TxtVideoBoundary
+Content-Disposition: form-data; name="speed"
+
+0.5
+--TxtVideoBoundary
+Content-Disposition: form-data; name="cover"; filename="cover.png"
+Content-Type: image/png
+
+< ./cover.png
+--TxtVideoBoundary--
+
+### 查询当前用户的任务。
+GET {{baseUrl}}/txt-video/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+
+### 公开视频：可用于播放器，支持 Range。
+GET {{baseUrl}}/txt-video/files/{{filename}}
+Range: bytes=0-1023
+
+### 附件下载。
+GET {{baseUrl}}/txt-video/files/{{filename}}?download=1

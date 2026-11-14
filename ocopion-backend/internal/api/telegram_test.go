@@ -38,7 +38,7 @@ func TestTelegramRouterAuthentication(t *testing.T) {
 	for _, whitelist := range [][]string{nil, {"/api/telegram"}, {"POST:/api/telegram"}, {"*:/api/telegram"}} {
 		config.GlobalConfig.Auth.Whitelist = whitelist
 		repo := &telegramRepository{}
-		r := newRouter(nil, nil, nil, nil, nil, nil, telegram.NewController(telegram.NewService(repo)))
+		r := newTestRouter(t, nil, nil, nil, nil, nil, nil, telegram.NewController(telegram.NewService(repo)))
 		for _, token := range []string{"", "invalid-token", expired, refresh, access} {
 			req := httptest.NewRequest("POST", "/api/telegram", strings.NewReader(`{"text":"hello"}`))
 			if token != "" {
@@ -51,9 +51,9 @@ func TestTelegramRouterAuthentication(t *testing.T) {
 			if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
 				t.Fatal(err)
 			}
-			if token == access {
+			if token == access || len(whitelist) > 0 {
 				if w.Code != 200 || result.Code != 200 || repo.calls != before+1 {
-					t.Fatalf("access: %s", w.Body.String())
+					t.Fatalf("authorized whitelist=%v: %s", whitelist, w.Body.String())
 				}
 			} else if w.Code != 401 || result.Code != 1006 || repo.calls != before {
 				t.Fatalf("whitelist=%v: %s", whitelist, w.Body.String())

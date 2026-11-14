@@ -5,21 +5,46 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
+
 	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+
 	"ocopion/internal/config"
 	"ocopion/internal/module/app"
+	"ocopion/internal/module/attach"
 	"ocopion/internal/module/auth"
+	"ocopion/internal/module/cloudflare"
 	"ocopion/internal/module/mail"
 	"ocopion/internal/module/post"
 	"ocopion/internal/module/telegram"
+	"ocopion/internal/module/txtvideo"
 	"ocopion/internal/module/user"
 	"ocopion/internal/module/video"
 	jwtpkg "ocopion/internal/pkg/jwt"
 	"ocopion/internal/pkg/pagination"
 	"ocopion/internal/pkg/response"
 )
+
+// newTestRouter 为各路由测试装配新增的控制器，并隔离文件存储目录。
+func newTestRouter(t *testing.T, postController *post.Controller, userController *user.Controller, authController *auth.AuthController, appController *app.Controller, videoController *video.VideoController, mailController *mail.Controller, telegramController *telegram.Controller) *gin.Engine {
+	t.Helper()
+	dir := t.TempDir()
+	cfg := config.AttachConfig{
+		UploadDirPath:       filepath.Join(dir, "uploads"),
+		UploadLargeFilePath: filepath.Join(dir, "larges"),
+		ChunkDirPath:        filepath.Join(dir, "chunks"),
+		TxtVideoDirPath:     filepath.Join(dir, "txt-videos"),
+		ChunkDirSalt:        "test",
+	}
+	return newRouter(postController, userController, authController, appController, videoController, mailController, telegramController,
+		attach.NewController(attach.NewService(attach.NewFileRepository(), cfg)),
+		cloudflare.NewController(cloudflare.NewService(cloudflare.NewRepository(config.GetConfig()))),
+		txtvideo.NewController(txtvideo.NewService(txtvideo.NewFileRepository(cfg))),
+	)
+}
 
 type postRepository struct{ calls int }
 
@@ -78,10 +103,10 @@ func TestRouterAuthentication(t *testing.T) {
 	}
 	previous := config.GlobalConfig
 	t.Cleanup(func() { config.GlobalConfig = previous })
-	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "test-secret"}, Auth: config.AuthConfig{Whitelist: []string{"/api/post", "GET:/api/post/:id"}}}
+	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "test-secret"}}
 	pr, ur := &postRepository{}, &userRepository{}
 	mr := &mailRepository{}
-	r := newRouter(post.NewController(post.NewService(pr)), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)), telegram.NewController(telegram.NewService(&telegramRepository{})))
+	r := newTestRouter(t, post.NewController(post.NewService(pr)), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)), telegram.NewController(telegram.NewService(&telegramRepository{})))
 	// This identity has no repository user lookup for post authorization.
 	access, refresh, err := jwtpkg.GenToken(999)
 	if err != nil {
@@ -198,7 +223,7 @@ func TestMailRouterAuthentication(t *testing.T) {
 	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "mail-test-secret"}}
 	mr := &mailRepository{}
 	ur := &userRepository{}
-	r := newRouter(post.NewController(post.NewService(&postRepository{})), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)), telegram.NewController(telegram.NewService(&telegramRepository{})))
+	r := newTestRouter(t, post.NewController(post.NewService(&postRepository{})), user.NewController(user.NewService(ur)), auth.NewAuthController(auth.NewAuthService(ur)), app.NewController(), video.NewVideoController(video.NewVideoService(videoRepository{}, config.GetConfig())), mail.NewController(mail.NewService(mr)), telegram.NewController(telegram.NewService(&telegramRepository{})))
 	access, refresh, err := jwtpkg.GenToken(999)
 	if err != nil {
 		t.Fatal(err)

@@ -15,6 +15,12 @@ declare module 'vue-router' {
 
 const basicRoutes = [
   {
+    path: '/txt-video',
+    name: 'txt-video',
+    component: () => import('../views/txt-video/TxtVideoView.vue'),
+    meta: { title: '文案转视频' },
+  },
+  {
     path: '/cloudflare/speed-test',
     name: 'cloudflare-speed-test',
     component: () => import('../views/cloudflare/SpeedTestView.vue'),

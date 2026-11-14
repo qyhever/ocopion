@@ -124,3 +124,7 @@ go test -race ./internal/module/cloudflare
 # 构建后端。
 go build -o /tmp/ocopion ./cmd
 ```
+
+## 文案转视频
+
+运行依赖、配置、接口与验证方式见 [文案转视频说明](docs/txt-video.md)，请求示例见 [rest/txt-video.http](rest/txt-video.http)。

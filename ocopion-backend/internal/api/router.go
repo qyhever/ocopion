@@ -14,6 +14,7 @@ import (
 	"ocopion/internal/module/mail"
 	"ocopion/internal/module/post"
 	"ocopion/internal/module/telegram"
+	"ocopion/internal/module/txtvideo"
 	"ocopion/internal/module/user"
 	"ocopion/internal/module/video"
 	"ocopion/internal/pkg/db"
@@ -36,10 +37,36 @@ func SetupRouter() (*gin.Engine, error) {
 	mailController := mail.NewController(mail.NewService(mail.NewPostalRepository()))
 	tg := config.GetConfig().TG
 	telegramController := telegram.NewController(telegram.NewService(telegram.NewClientRepository(telegramclient.NewClient(tg.BotToken, tg.ChatID, tg.MirrorBaseURL))))
-	return newRouter(postController, userController, authController, appController, videoController, mailController, telegramController), nil
+
+	attachController := attach.NewController(attach.NewService(attach.NewFileRepository(), config.GetConfig().Attach))
+	cfController := cloudflare.NewController(cloudflare.NewService(cloudflare.NewRepository(config.GetConfig())))
+	txtVideoController := txtvideo.NewController(txtvideo.NewService(txtvideo.NewFileRepository(config.GetConfig().Attach)))
+	return newRouter(
+		postController,
+		userController,
+		authController,
+		appController,
+		videoController,
+		mailController,
+		telegramController,
+		attachController,
+		cfController,
+		txtVideoController,
+	), nil
 }
 
-func newRouter(postController *post.Controller, userController *user.Controller, authController *auth.AuthController, appController *app.Controller, videoController *video.VideoController, mailController *mail.Controller, telegramController *telegram.Controller) *gin.Engine {
+func newRouter(
+	postController *post.Controller,
+	userController *user.Controller,
+	authController *auth.AuthController,
+	appController *app.Controller,
+	videoController *video.VideoController,
+	mailController *mail.Controller,
+	telegramController *telegram.Controller,
+	attachController *attach.Controller,
+	cfController *cloudflare.Controller,
+	txtVideoController *txtvideo.Controller,
+) *gin.Engine {
 	if config.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -48,8 +75,6 @@ func newRouter(postController *post.Controller, userController *user.Controller,
 	fmt.Printf("Go Version %v\n", runtime.Version())
 
 	api := r.Group("/api")
-	attachController := attach.NewController(attach.NewService(attach.NewFileRepository(), config.GetConfig().Attach))
-	cfController := cloudflare.NewController(cloudflare.NewService(cloudflare.NewRepository(config.GetConfig())))
 	api.POST("/cloudflare/fast-ip", cfController.Start)
 	api.GET("/cloudflare/fast-ip", cfController.Get)
 	api.POST("/cloudflare/speed-test", cfController.SpeedTest)
@@ -92,6 +117,10 @@ func newRouter(postController *post.Controller, userController *user.Controller,
 		attachuserGroup.POST("/chunk", attachController.Chunk)
 		attachuserGroup.POST("/merge", attachController.Merge)
 	}
+
+	api.POST("/txt-video/tasks", authenticate, txtVideoController.Create)
+	api.GET("/txt-video/tasks/:id", authenticate, txtVideoController.Get)
+	api.GET("/txt-video/files/:filename", txtVideoController.File)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"msg": "404"})

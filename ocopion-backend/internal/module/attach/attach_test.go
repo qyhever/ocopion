@@ -17,6 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"ocopion/internal/config"
+	"ocopion/internal/middleware"
 	jwtpkg "ocopion/internal/pkg/jwt"
 )
 
@@ -186,16 +187,25 @@ func TestSimpleUploadBoundaries(t *testing.T) {
 		}
 	}
 }
+func registerTestRoutes(r *gin.Engine, s *Service) {
+	ctl := NewController(s)
+	group := r.Group("/api/attach", middleware.JWTAuthMiddleware())
+	group.POST("/upload", ctl.Upload)
+	group.POST("/verify", ctl.Verify)
+	group.POST("/chunk", ctl.Chunk)
+	group.POST("/merge", ctl.Merge)
+}
+
 func TestHTTPContract(t *testing.T) {
 	s, cfg := setup(t)
 	old := config.GlobalConfig
 	t.Cleanup(func() { config.GlobalConfig = old })
-	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "test"}, Auth: config.AuthConfig{Whitelist: []string{"/api/attach/upload"}}}
+	config.GlobalConfig = &config.Config{JWT: config.JWTConfig{Secret: "test"}}
 	token, refresh, e := jwtpkg.GenToken(1)
 	check(t, e)
 	r := gin.New()
 	r.Static("/public/uploads", cfg.UploadDirPath)
-	NewController(s).Register(r.Group("/api"))
+	registerTestRoutes(r, s)
 	for _, path := range []string{"upload", "verify", "chunk", "merge"} {
 		for _, auth := range []string{"", refresh, "bad"} {
 			req := httptest.NewRequest("POST", "/api/attach/"+path, nil)
@@ -207,7 +217,7 @@ func TestHTTPContract(t *testing.T) {
 			}
 		}
 	}
-	// 即使配置了白名单，合法 access token 仍可正常上传。
+	// 合法 access token 可正常上传。
 	var body bytes.Buffer
 	mw := multipart.NewWriter(&body)
 	part, e := mw.CreateFormFile("file", "file.txt")
@@ -249,7 +259,7 @@ func TestChunkHTTPFlow(t *testing.T) {
 	token, _, e := jwtpkg.GenToken(1)
 	check(t, e)
 	r := gin.New()
-	NewController(s).Register(r.Group("/api"))
+	registerTestRoutes(r, s)
 	r.Static("/public/larges", cfg.UploadLargeFilePath)
 	send := func(path, content string, body io.Reader) []byte {
 		req := httptest.NewRequest("POST", "/api/attach/"+path, body)
