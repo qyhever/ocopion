@@ -65,7 +65,7 @@ echo "📅 部署时间: $CURRENT_TIME"
 
 echo "📤 开始上传文件到服务器..."
 "${RSYNC_CMD[@]}" -avz --progress --partial ./ocopion "${DEPLOY_TARGET}:/opt/apps/ocopion-backend"
-"${RSYNC_CMD[@]}" -avz --progress --partial ./public "${DEPLOY_TARGET}:/opt/apps/ocopion-backend"
+"${RSYNC_CMD[@]}" -avz --progress --partial --exclude='uploads' --exclude='txt-videos' ./public "${DEPLOY_TARGET}:/opt/apps/ocopion-backend"
 "${RSYNC_CMD[@]}" -avz --delete --progress --partial ./docs "${DEPLOY_TARGET}:/opt/apps/ocopion-backend"
 "${RSYNC_CMD[@]}" -avz --progress --partial ./internal/config/app.yml "${DEPLOY_TARGET}:/opt/apps/ocopion-backend"
 # 本地部署时才上传 prod.yml，因为远程仓库没有 prod.yml
