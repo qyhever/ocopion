@@ -110,3 +110,18 @@ func TestJWTEnvOverridesYAML(t *testing.T) {
 		t.Fatalf("JWT env override failed: %#v", cfg.JWT)
 	}
 }
+
+func TestSpeedtestConfigEnv(t *testing.T) {
+	t.Setenv("OCOPION_SPEEDTEST_NODE_NAME", "env-node")
+	t.Setenv("OCOPION_SPEEDTEST_ALLOWED_ORIGINS", "https://one.test,https://two.test")
+	t.Setenv("OCOPION_SERVER_TRUSTED_PROXIES", "127.0.0.1,::1")
+	loader := viper.New()
+	bindEnvVars(loader)
+	var cfg Config
+	if err := loader.Unmarshal(&cfg); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Speedtest.NodeName != "env-node" || len(cfg.Speedtest.AllowedOrigins) != 2 || len(cfg.Server.TrustedProxies) != 2 {
+		t.Fatalf("bad speedtest config: %+v, %+v", cfg.Speedtest, cfg.Server)
+	}
+}

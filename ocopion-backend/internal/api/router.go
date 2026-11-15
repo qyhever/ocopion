@@ -13,6 +13,7 @@ import (
 	"ocopion/internal/module/cloudflare"
 	"ocopion/internal/module/mail"
 	"ocopion/internal/module/post"
+	"ocopion/internal/module/speedtest"
 	"ocopion/internal/module/telegram"
 	"ocopion/internal/module/txtvideo"
 	"ocopion/internal/module/user"
@@ -71,10 +72,18 @@ func newRouter(
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()
+	cfg := config.GetConfig()
+	if cfg == nil {
+		cfg = &config.Config{}
+	}
+	if err := r.SetTrustedProxies(cfg.Server.TrustedProxies); err != nil {
+		panic(err)
+	}
 	r.Static("/public", "./public")
 	fmt.Printf("Go Version %v\n", runtime.Version())
 
 	api := r.Group("/api")
+	speedtest.NewController(speedtest.NewService(speedtest.NewRepository(), cfg.Speedtest)).Register(api)
 	api.POST("/cloudflare/fast-ip", cfController.Start)
 	api.GET("/cloudflare/fast-ip", cfController.Get)
 	api.POST("/cloudflare/speed-test", cfController.SpeedTest)

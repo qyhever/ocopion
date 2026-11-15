@@ -1,0 +1,21 @@
+@baseUrl = http://localhost:8301/api
+@accessToken = replace-with-access-token
+
+### 节点信息（统一 JSON 响应）
+GET {{baseUrl}}/info
+Authorization: Bearer {{accessToken}}
+
+### 下载流，客户端应在约 10 秒后取消
+GET {{baseUrl}}/download
+Authorization: Bearer {{accessToken}}
+
+### 上传实际接收字节数，此例为 3 字节
+POST {{baseUrl}}/upload
+Authorization: Bearer {{accessToken}}
+Content-Type: application/octet-stream
+
+abc
+
+### WebSocket 在浏览器中使用子协议，不在 URL 中传 token：
+# new WebSocket('ws://localhost:8301/api/echo', ['ocopion-speedtest', 'access_token.' + accessToken])
+# Origin 必须同源或命中 speedtest.allowed_origins。

@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { difference, remove, union } from 'lodash-es'
 import { MessagePlugin } from 'tdesign-vue-next'
@@ -73,7 +73,13 @@ import NavTab from './components/NavTab.vue'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const collapsed = ref(false)
+const mobileViewport = window.matchMedia('(max-width: 760px)')
+const collapsed = ref(mobileViewport.matches)
+const onViewportChange = (event: MediaQueryListEvent) => {
+  collapsed.value = event.matches
+}
+mobileViewport.addEventListener('change', onViewportChange)
+onBeforeUnmount(() => mobileViewport.removeEventListener('change', onViewportChange))
 const menus = ref(menuList)
 
 // 获取用户信息

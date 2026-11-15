@@ -6,6 +6,7 @@ file:
 
 server:
   port: 8301
+  trusted_proxies: [] # 仅填写实际反向代理的 IP/CIDR，默认不信任转发头
 
 logger:
   level: "debug"
@@ -62,3 +63,7 @@ clash_template_path: "./tmp/template.yaml"
 output_clash_path: "./public/kdd.yaml"
 upload_config_file_url: "http://localhost:8301/app/uploadConfigFile"
 upload_config_file_secret: "hi"
+
+speedtest:
+  node_name: "当前 VPS"
+  allowed_origins: [] # 默认允许同源；跨域前端需填写完整 Origin

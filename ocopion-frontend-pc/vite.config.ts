@@ -31,6 +31,7 @@ export default defineConfig(({ mode, command }) => {
         '/ocopion/api': {
           target: 'http://localhost:8301',
           changeOrigin: true,
+          ws: true,
           rewrite: (path) => path.replace(/^\/ocopion/, ''),
         },
       },

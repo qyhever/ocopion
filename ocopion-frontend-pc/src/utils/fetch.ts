@@ -10,6 +10,9 @@ export interface RequestOptions {
   onUploadProgress?: (event: ProgressEvent) => void
   onDownloadProgress?: (event: ProgressEvent) => void
   responseType?: 'json' | 'blob' | 'text'
+  onChunk?: (chunk: Uint8Array) => void
+  retryAuth?: boolean
+  silent?: boolean
   signal?: AbortSignal
   timeout?: number // in milliseconds
 }
@@ -95,8 +98,15 @@ export function request<T = any>(options: RequestOptions): Promise<T> {
     }
 
     if (method !== 'GET' && method !== 'HEAD') {
-      if (data instanceof FormData || typeof data === 'string' || data instanceof URLSearchParams) {
-        fetchOptions.body = data
+      if (
+        data instanceof Blob ||
+        data instanceof ArrayBuffer ||
+        ArrayBuffer.isView(data) ||
+        data instanceof FormData ||
+        typeof data === 'string' ||
+        data instanceof URLSearchParams
+      ) {
+        fetchOptions.body = data as BodyInit
       } else if (data) {
         const contentTypeKey = Object.keys(headers).find(
           (key) => key.toLowerCase() === 'content-type',
@@ -115,7 +125,22 @@ export function request<T = any>(options: RequestOptions): Promise<T> {
     }
 
     fetch(fullUrl.toString(), fetchOptions)
-      .then((response) => {
+      .then(async (response) => {
+        if (response.ok && options.onChunk) {
+          if (!response.body) throw new Error('浏览器不支持流式下载')
+          const reader = response.body.getReader()
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) break
+              options.onChunk(value)
+            }
+          } finally {
+            await reader.cancel().catch(() => {})
+            reader.releaseLock()
+          }
+          return { code: 200, data: null }
+        }
         let bodyParser: 'json' | 'blob' | 'text'
         const contentType = response.headers.get('content-type')
         const isJson = contentType && contentType.includes('application/json')

@@ -16,12 +16,21 @@ const (
 
 // JWTAuthMiddleware 基于JWT的认证中间件
 func JWTAuthMiddleware() func(c *gin.Context) {
+	return jwtAuthMiddleware(true)
+}
+
+// RequiredJWTAuthMiddleware 用于必须登录的接口，不接受全局白名单绕过。
+func RequiredJWTAuthMiddleware() func(c *gin.Context) {
+	return jwtAuthMiddleware(false)
+}
+
+func jwtAuthMiddleware(allowWhitelist bool) func(c *gin.Context) {
 	// 从请求中读取 Authorization 或 token，校验并解析 JWT。
 	// 解析成功后，将用户ID写入上下文：key 为 ContextUserIDKey。
 	// 若未携带 token 或 token 无效，则返回统一错误响应并中止后续处理。
 	return func(c *gin.Context) {
 		// 0) 跳过 CORS 预检
-		if c.Request.Method == "OPTIONS" || isRequestWhitelisted(c) {
+		if c.Request.Method == "OPTIONS" || (allowWhitelist && isRequestWhitelisted(c)) {
 			c.Next()
 			return
 		}

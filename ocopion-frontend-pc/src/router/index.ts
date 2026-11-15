@@ -15,6 +15,12 @@ declare module 'vue-router' {
 
 const basicRoutes = [
   {
+    path: '/speedtest',
+    name: 'speedtest',
+    component: () => import('../views/speedtest/SpeedtestView.vue'),
+    meta: { title: 'VPS 测速' },
+  },
+  {
     path: '/txt-video',
     name: 'txt-video',
     component: () => import('../views/txt-video/TxtVideoView.vue'),

@@ -5,7 +5,8 @@ import router from '@/router'
 import { request as http } from './fetch'
 import type { RequestOptions } from './fetch'
 
-const defaultOptions = { baseURL: '/ocopion/api' }
+export const API_BASE_URL = '/ocopion/api'
+const defaultOptions = { baseURL: API_BASE_URL }
 const SUCCESS_CODE = 200
 let refreshTask: { session: number; promise: Promise<string> } | null = null
 let expiredSession: number | null = null
@@ -89,10 +90,11 @@ export async function request<T = any>(opts: RequestOptions): Promise<T> {
           throw refreshError
         }
         if (userStore.sessionVersion !== session) throw error
+        if (options.retryAuth === false || options.signal?.aborted) throw error
         return send(true)
       }
       // 刷新失败由原始受保护请求统一处理，避免并发重复提示。
-      if (!isRefreshRequest) {
+      if (!isRefreshRequest && !options.silent) {
         MessagePlugin.error(
           error.data?.message ||
             (error.response ? codeMessage[error.response.status] : error.message) ||
@@ -105,7 +107,7 @@ export async function request<T = any>(opts: RequestOptions): Promise<T> {
     if (response.code !== SUCCESS_CODE) {
       const error: RequestError = new Error(response.message || '操作失败')
       error.data = response
-      if (!isRefreshRequest) MessagePlugin.warning(error.message)
+      if (!isRefreshRequest && !options.silent) MessagePlugin.warning(error.message)
       throw error
     }
     return response.data

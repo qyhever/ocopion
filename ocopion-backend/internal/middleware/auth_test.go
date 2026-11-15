@@ -20,7 +20,7 @@ func TestAuthenticationSources(t *testing.T) {
 	}
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Any("/protected", JWTAuthMiddleware(), func(c *gin.Context) {
+	r.Any("/protected", RequiredJWTAuthMiddleware(), func(c *gin.Context) {
 		if c.Request.Method != "OPTIONS" {
 			if id, ok := c.Get(ContextUserIDKey); !ok || id != uint64(42) {
 				t.Errorf("wrong identity: %v", id)

@@ -12,28 +12,35 @@ import (
 
 // Config 应用配置结构体
 type Config struct {
-	Attach                 AttachConfig   `mapstructure:"attach"`
-	UploadConfigFileURL    string         `mapstructure:"upload_config_file_url"`
-	UploadConfigFileSecret string         `mapstructure:"upload_config_file_secret"`
-	ClashTemplatePath      string         `mapstructure:"clash_template_path"`
-	OutputClashPath        string         `mapstructure:"output_clash_path"`
-	CFSTBinPath            string         `mapstructure:"cfst_bin_path"`
-	OutputFastIPPath       string         `mapstructure:"output_fast_ip_path"`
-	CFSTURL                string         `mapstructure:"cfst_url"`
-	Mode                   string         `mapstructure:"mode"`
-	Server                 ServerConfig   `mapstructure:"server"`
-	File                   FileConfig     `mapstructure:"file"`
-	Logger                 LoggerConfig   `mapstructure:"logger"`
-	Database               DatabaseConfig `mapstructure:"database"`
-	JWT                    JWTConfig      `mapstructure:"jwt"`
-	Auth                   AuthConfig     `mapstructure:"auth"`
-	Postal                 PostalConfig   `mapstructure:"postal"`
-	TG                     TGConfig       `mapstructure:"tg"`
+	Speedtest              SpeedtestConfig `mapstructure:"speedtest"`
+	Attach                 AttachConfig    `mapstructure:"attach"`
+	UploadConfigFileURL    string          `mapstructure:"upload_config_file_url"`
+	UploadConfigFileSecret string          `mapstructure:"upload_config_file_secret"`
+	ClashTemplatePath      string          `mapstructure:"clash_template_path"`
+	OutputClashPath        string          `mapstructure:"output_clash_path"`
+	CFSTBinPath            string          `mapstructure:"cfst_bin_path"`
+	OutputFastIPPath       string          `mapstructure:"output_fast_ip_path"`
+	CFSTURL                string          `mapstructure:"cfst_url"`
+	Mode                   string          `mapstructure:"mode"`
+	Server                 ServerConfig    `mapstructure:"server"`
+	File                   FileConfig      `mapstructure:"file"`
+	Logger                 LoggerConfig    `mapstructure:"logger"`
+	Database               DatabaseConfig  `mapstructure:"database"`
+	JWT                    JWTConfig       `mapstructure:"jwt"`
+	Auth                   AuthConfig      `mapstructure:"auth"`
+	Postal                 PostalConfig    `mapstructure:"postal"`
+	TG                     TGConfig        `mapstructure:"tg"`
 }
 
 // ServerConfig 服务器配置
 type ServerConfig struct {
-	Port int `mapstructure:"port"`
+	Port           int      `mapstructure:"port"`
+	TrustedProxies []string `mapstructure:"trusted_proxies"`
+}
+
+type SpeedtestConfig struct {
+	NodeName       string   `mapstructure:"node_name"`
+	AllowedOrigins []string `mapstructure:"allowed_origins"`
 }
 
 type FileConfig struct {
@@ -185,6 +192,9 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.BindEnv("mode", "OCOPION_MODE")
 
 	loader.BindEnv("server.port", "OCOPION_SERVER_PORT")
+	loader.BindEnv("server.trusted_proxies", "OCOPION_SERVER_TRUSTED_PROXIES")
+	loader.BindEnv("speedtest.node_name", "OCOPION_SPEEDTEST_NODE_NAME")
+	loader.BindEnv("speedtest.allowed_origins", "OCOPION_SPEEDTEST_ALLOWED_ORIGINS")
 
 	loader.BindEnv("file.upload_view_base_url", "OCOPION_FILE_UPLOAD_VIEW_BASE_URL")
 	loader.BindEnv("file.upload_dir_path", "OCOPION_FILE_UPLOAD_DIR_PATH")

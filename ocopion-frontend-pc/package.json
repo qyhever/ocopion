@@ -14,6 +14,7 @@
     "build-only": "vite build --mode prod",
     "type-check": "vue-tsc --build",
     "test:cloudflare": "node --test tests/cloudflare.test.mjs",
+    "test:speedtest": "node --test tests/speedtest.test.mjs",
     "test:auth": "node --test tests/auth.test.mjs",
     "test:telegram": "node --test tests/telegram.test.mjs",
     "test:attach": "node --test tests/attach.test.mjs",
