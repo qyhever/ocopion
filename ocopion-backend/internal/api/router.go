@@ -26,9 +26,10 @@ import (
 
 func SetupRouter() (*gin.Engine, error) {
 	gormDB, err := db.NewGormDB(config.GetMySQLDSN())
-	if err != nil {
-		return nil, err
-	}
+	fmt.Printf("Error: %v\n", err)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	postController := post.NewController(post.NewService(post.NewGormRepository(gormDB)))
 	appController := app.NewController()
 	videoController := video.NewVideoController(video.NewVideoService(video.NewVideoRepository(), config.GetConfig()))
