@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"ocopion/internal/config"
 	"ocopion/internal/pkg/pagination"
 	"ocopion/internal/pkg/password"
 
@@ -22,6 +23,16 @@ var (
 type Service struct{ repo Repository }
 
 func NewService(repo Repository) *Service { return &Service{repo: repo} }
+
+// MockUser 返回配置中的认证用户；未启用时返回 nil。密码不写入用户模型。
+func MockUser() *User {
+	cfg := config.GetConfig()
+	if cfg == nil || !cfg.Auth.MockUser.Enabled {
+		return nil
+	}
+	mock := cfg.Auth.MockUser
+	return &User{ID: 1, Email: mock.Email, Username: mock.Username, Nickname: mock.Username, Status: "active"}
+}
 
 func validString(value string, limit int, required bool) bool {
 	return utf8.ValidString(value) && utf8.RuneCountInString(value) <= limit && (!required || strings.TrimSpace(value) != "")
@@ -125,6 +136,12 @@ func (s *Service) List(ctx context.Context, page, pageSize int, keyword string) 
 func (s *Service) Me(ctx context.Context, id int64) (*User, error) {
 	if id <= 0 {
 		return nil, ErrUnauthorized
+	}
+	if mock := MockUser(); mock != nil {
+		if id != mock.ID {
+			return nil, ErrUnauthorized
+		}
+		return mock, nil
 	}
 	user, err := s.repo.Get(ctx, id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {

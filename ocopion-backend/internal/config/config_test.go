@@ -6,6 +6,34 @@ import (
 	"testing"
 )
 
+func TestMockUserConfig(t *testing.T) {
+	for _, tc := range []struct {
+		name, yaml string
+		want       MockUserConfig
+	}{
+		{"absent", "auth:\n  whitelist: []\n", MockUserConfig{}},
+		{"disabled", "auth:\n  mockuser:\n    email: mock@example.com\n", MockUserConfig{Email: "mock@example.com"}},
+		{"enabled", "auth:\n  mockuser:\n    enabled: true\n    email: mock@example.com\n    username: mock-admin\n    password: mock-secret\n",
+			MockUserConfig{Enabled: true, Email: "mock@example.com", Username: "mock-admin", Password: "mock-secret"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			loader := viper.New()
+			bindEnvVars(loader)
+			loader.SetConfigType("yaml")
+			if err := loader.ReadConfig(strings.NewReader(tc.yaml)); err != nil {
+				t.Fatal(err)
+			}
+			var cfg Config
+			if err := loader.Unmarshal(&cfg); err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Auth.MockUser != tc.want {
+				t.Fatal("mock user config did not match YAML")
+			}
+		})
+	}
+}
+
 func TestTelegramEnvOverridesYAML(t *testing.T) {
 	for _, env := range []bool{false, true} {
 		t.Run(map[bool]string{false: "yaml", true: "env"}[env], func(t *testing.T) {

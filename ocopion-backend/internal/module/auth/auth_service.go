@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"ocopion/internal/config"
 	"ocopion/internal/module/user"
 	jwtpkg "ocopion/internal/pkg/jwt"
 	"ocopion/internal/pkg/password"
@@ -45,6 +46,12 @@ func (s *AuthService) Login(ctx context.Context, input LoginRequest) (*TokenResp
 	if !validEmail(input.Email) || !validPassword(input.Password) {
 		return nil, ErrInvalidInput
 	}
+	if mock := user.MockUser(); mock != nil {
+		if input.Email != mock.Email || input.Password != config.GetConfig().Auth.MockUser.Password {
+			return nil, ErrCredentials
+		}
+		return issueTokens(mock.ID)
+	}
 	user, err := s.repo.GetByEmail(ctx, input.Email)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrCredentials
@@ -65,6 +72,12 @@ func (s *AuthService) Refresh(ctx context.Context, input RefreshRequest) (*Token
 	claims, err := jwtpkg.ParseToken(input.RefreshToken)
 	if err != nil || !claims.IsRefreshToken() {
 		return nil, ErrUnauthorized
+	}
+	if mock := user.MockUser(); mock != nil {
+		if claims.UserID != uint64(mock.ID) {
+			return nil, ErrUnauthorized
+		}
+		return issueTokens(mock.ID)
 	}
 	user, err := s.repo.Get(ctx, int64(claims.UserID))
 	if errors.Is(err, gorm.ErrRecordNotFound) {

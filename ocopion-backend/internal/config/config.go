@@ -91,7 +91,16 @@ type JWTConfig struct {
 // AuthConfig 认证相关配置
 // 包括访问白名单（支持 "METHOD:/path" 或仅路径形式）。
 type AuthConfig struct {
-	Whitelist []string `mapstructure:"whitelist"`
+	Whitelist []string       `mapstructure:"whitelist"`
+	MockUser  MockUserConfig `mapstructure:"mockuser"`
+}
+
+// MockUserConfig 配置无需数据库的认证用户，默认关闭。
+type MockUserConfig struct {
+	Enabled  bool   `mapstructure:"enabled"`
+	Email    string `mapstructure:"email"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
 }
 
 // Postal配置

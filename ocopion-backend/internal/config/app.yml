@@ -33,6 +33,11 @@ auth:
     - "GET:/@vite/client"
     - "GET:/"
     - "POST:/app/getHelloInfo"
+  mockuser:
+    enabled: true
+    email: "abc@test.com"
+    username: "admin"
+    password: "123456"
 
 postal:
   smtp_server: "" # SMTP服务器地址
